@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+
+
+// {
+//   "compilerOptions": {
+//     "typeRoots": ["node_modules/@types"],
+//     "types": ["bn.js"]
+//   }
+// }
