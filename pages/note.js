@@ -211,7 +211,7 @@ function Home() {
             <h2 className={styles.subheading}>Addresses:</h2>
             {addresses.map((address, index) => (
               <p key={index}>{address}</p>
-            ))}
+            ))} 
           </div>
         )}
         <h2 className={styles.subheading}>Metamask Account:</h2>

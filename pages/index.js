@@ -30,8 +30,8 @@ export default function Home() {
         <meta name="description" content="Blockchain powered microfinance platform" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-       <Header/>
+      
+      <Header/>
 
       <Box className="hero-section" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundImage: `url('/path/to/your/background-image.jpg')`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: 'cover' }}>
         <Container maxWidth="lg">
