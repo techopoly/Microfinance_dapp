@@ -1,32 +1,45 @@
-import React from 'react';
-import { AppBar, Toolbar, Button, Typography, Container, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import {makeStyles} from "@material-ui/core/styles";
+import React, { useState, useEffect } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Typography,
+  Container,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import { makeStyles } from "@material-ui/core/styles";
 import Header from "./appbar";
-
-
-
+import useMifiApi from "./hooks/useMifiApi";
+import Web3 from "web3";
 
 const useStyles = makeStyles((theme) => ({
   logo: {
     flexGrow: 1,
   },
   section: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
     padding: theme.spacing(2),
     margin: theme.spacing(2),
     border: `1px solid ${theme.palette.primary.main}`,
     borderRadius: theme.shape.borderRadius,
-    [theme.breakpoints.up('md')]: {
-      flexDirection: 'row',
+    [theme.breakpoints.up("md")]: {
+      flexDirection: "row",
     },
   },
   sectionTitle: {
     marginBottom: theme.spacing(2),
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up("md")]: {
       marginRight: theme.spacing(2),
       marginBottom: 0,
     },
@@ -36,80 +49,165 @@ const useStyles = makeStyles((theme) => ({
 const stakingData = [
   {
     id: 1,
-    vault_owner: 'abcd1234',
+    vault_owner: "abcd1234",
     amount: 5000,
-    address:"02x539023430234",
-    borrower_name: 'John Doe',
+    address: "02x539023430234",
+    borrower_name: "John Doe",
     borrower_reputation_score: 4.2,
     interest_rate: 8,
     no_of_installments: 12,
-    installments_completed:3,
-    Installment_amount:3000,
-    Each_term:"40 days",
-    status:"Pending",
-    creation_date: '2022-01-15',
+    installments_completed: 3,
+    Installment_amount: 3000,
+    Each_term: "40 days",
+    status: "Pending",
+    creation_date: "2022-01-15",
   },
   {
     id: 2,
-    vault_owner: 'efgh5678',
+    vault_owner: "efgh5678",
     amount: 10000,
-    address:"02x539023430234",
-    borrower_name: 'Jane Doe',
+    address: "02x539023430234",
+    borrower_name: "Jane Doe",
     borrower_reputation_score: 4.7,
     interest_rate: 6.5,
     no_of_installments: 6,
-    installments_completed:6,
-    Installment_amount:4000,
-    Each_term:"20 days",
-    status:"Approved",
-    creation_date: '2022-03-21',
+    installments_completed: 6,
+    Installment_amount: 4000,
+    Each_term: "20 days",
+    status: "Approved",
+    creation_date: "2022-03-21",
   },
   {
     id: 3,
-    vault_owner: 'ijkl9012',
-    address:"02x539023430234",
+    vault_owner: "ijkl9012",
+    address: "02x539023430234",
     amount: 7500,
-    borrower_name: 'Bob Smith',
+    borrower_name: "Bob Smith",
     borrower_reputation_score: 3.8,
     interest_rate: 7.5,
     no_of_installments: 8,
-    installments_completed:2,
-    Installment_amount:9000,
-    Each_term:"45 days",
-    status:"Pending",
-    creation_date: '2022-05-09',
+    installments_completed: 2,
+    Installment_amount: 9000,
+    Each_term: "45 days",
+    status: "Pending",
+    creation_date: "2022-05-09",
   },
   {
     id: 4,
-    vault_owner: 'mnop3456',
+    vault_owner: "mnop3456",
     amount: 12000,
-    address:"02x539023430234",
-    borrower_name: 'Alice Johnson',
+    address: "02x539023430234",
+    borrower_name: "Alice Johnson",
     borrower_reputation_score: 4.9,
     interest_rate: 5,
     no_of_installments: 10,
-    installments_completed:7,
-    Installment_amount:3000,
-    Each_term:"90 days",
-    status:"Pending",
-    creation_date: '2022-07-02',
+    installments_completed: 7,
+    Installment_amount: 3000,
+    Each_term: "90 days",
+    status: "Pending",
+    creation_date: "2022-07-02",
   },
 ];
 
 export default function StakerPage() {
   const classes = useStyles();
+  const { web3, account, contract } = useMifiApi();
+  const [staker, setStaker] = useState([]);
+
+  useEffect(() => {
+    const getStakerInfo = async () => {
+      try {
+        console.log(contract);
+        if (contract) {
+          const staker = await contract.methods
+            .address_staker(account[0])
+            .call({ from: account[0] });
+          setStaker(staker);
+          console.log("staker: ", staker);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getStakerInfo();
+  }, [contract]);
+
+  const addStakingBalance = async (type, value) => {
+    const weiAmount = Web3.utils.toWei("1", "ether");
+    try {
+      console.log(contract);
+      if (contract) {
+        const balance = await contract.methods
+          .add_balance(type)
+          .send({ from: account[0], value: weiAmount });
+        window.location.reload();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const becomeStaker = async () => {
+    try {
+      console.log(contract);
+      if (contract) {
+        const response = await contract.methods
+          .become_staker(true)
+          .send({ from: account[0] });
+        setStaker(
+          await contract.methods
+            .address_staker(account[0])
+            .call({ from: account[0] })
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
-     <Header/>
+      <Header />
+      {!parseInt(staker.balance) && <Button onClick={becomeStaker} variant="contained" color="success">
+        Become a Staker
+      </Button>}
+      <Button
+        onClick={() => addStakingBalance("staker")}
+        variant="contained"
+        color="success"
+      >
+        Add Staking Balance
+      </Button>
+      <Button onClick={addStakingBalance} variant="contained" color="success">
+        Convert Balance to Staking Balance
+      </Button>
       <Container maxWidth="xl">
         <Box className={classes.section}>
-          <Typography variant="h6" component="h3" className={classes.sectionTitle}>Total Balance: 50,000</Typography>
-          <Typography variant="h6" component="h3" className={classes.sectionTitle}>Total Earned: 2,500</Typography>
-          <Typography variant="h6" component="h3" className={classes.sectionTitle}>NID Verified: <CheckCircleRoundedIcon color="success" sx={{ fontSize: 25 }}/></Typography>
+          <Typography
+            variant="h6"
+            component="h3"
+            className={classes.sectionTitle}
+          >
+            Total Staking Balance: {staker.balance}
+          </Typography>
+          <Typography
+            variant="h6"
+            component="h3"
+            className={classes.sectionTitle}
+          >
+            Total Earned: 2,500
+          </Typography>
+          <Typography
+            variant="h6"
+            component="h3"
+            className={classes.sectionTitle}
+          >
+            NID Verified:{" "}
+            <CheckCircleRoundedIcon color="success" sx={{ fontSize: 25 }} />
+          </Typography>
         </Box>
         <TableContainer component={Paper}>
-        <Table>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Amount</TableCell>
@@ -139,9 +237,15 @@ export default function StakerPage() {
                   <TableCell>{data.Installment_amount}</TableCell>
                   <TableCell>{data.Each_term}</TableCell>
                   <TableCell>{data.creation_date}</TableCell>
-                  <TableCell ><Button variant="contained" color="success">Approved</Button></TableCell>
                   <TableCell>
-                    <Button variant="contained" color="primary">Stake</Button>
+                    <Button variant="contained" color="success">
+                      Approved
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="contained" color="primary">
+                      Stake
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -149,9 +253,7 @@ export default function StakerPage() {
           </Table>
         </TableContainer>
       </Container>
-      <div className='space'>
-
-      </div>
+      <div className="space"></div>
     </>
   );
 }

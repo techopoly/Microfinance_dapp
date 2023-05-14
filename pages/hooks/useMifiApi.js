@@ -1,6 +1,6 @@
 import getWeb3 from "../Components/getWeb3";
 import React, { useState, useEffect } from "react";
-import mifiContract from '../../public/contract/Note.json';
+import mifiContract from '../../public/contract/Mifi.json';
 
 
 export default function useWeb3Api() {
