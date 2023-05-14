@@ -15,6 +15,7 @@ function Home() {
   const [user, setUser] = useState([]);
   const [allNotes, setAllNotes] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  
 
   useEffect(() => {
     const init = async () => {
