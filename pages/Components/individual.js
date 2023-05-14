@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardActions, Typography, Button, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, TextField, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material';
 import { green, red, yellow } from '@mui/material/colors';
 import { styled } from '@mui/material/styles';
+import useMifiApi from '../hooks/useMifiApi';
 
 const dummyData = [
   { id: 'VL0001', totalSupply: 10000, remainingSupply: 6000, interestRate: 5, interestEarned: 1000, creationDate: '2022-01-01', status: 'approved' },
@@ -24,10 +25,11 @@ const vaultStatusColors = {
 
 const VaultFormDialog = ({ open, onClose, onSubmit }) => {
   const [amount, setAmount] = useState('');
+  const {web3, account, contract} = useMifiApi();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(amount);
+    onSubmit(amount, contract, account);
   };
 
   const handleAmountChange = (e) => {
@@ -132,8 +134,19 @@ const IndividualLendersPage = () => {
     setDialogOpen(false);
   };
 
-  const handleConfirmDialog = (amount) => {
-    // Do something with the amount
+  const handleConfirmDialog = async (amount, contract, account) => {
+    // Do something with the amount 
+        try {
+          console.log(contract);
+          if (contract) {
+            const response = await contract.methods
+              .create_individual_vault(amount, 8)
+              .send({ from: account[0] });
+          }
+        } catch (error) {
+          console.log(error);
+        }
+  
     console.log(amount);
     handleCloseDialog();
   };
