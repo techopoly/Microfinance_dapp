@@ -33,6 +33,7 @@ export default function AppHeader() {
   ////////////////confirm ////////////////
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
+  const [type, setType] = useState('');
   ///////////////////////////////////////
 
   const handleOptionClick = (option) => {
@@ -75,8 +76,8 @@ export default function AppHeader() {
     getUserInfo();
   }, [contract]);
 
-  const addBalance = async (type, value) => {
-    const weiAmount = Web3.utils.toWei("1", "ether");
+  const addBalance = async (value,type) => {
+    const weiAmount = Web3.utils.toWei(value, "ether");
     try {
       console.log(contract);
       if (contract) {
@@ -118,8 +119,10 @@ const handleAmountChange = (event) => {
   setAmount(event.target.value);
 };
 
+
 const handleConfirm = () => {
   console.log(`Confirmed adding balance of ${amount}`);
+  addBalance(amount, type);
   handleClose();
 };
 ////////////////////////////////////////////////////////////////////
@@ -162,7 +165,7 @@ const handleConfirm = () => {
               {`Balance: ` + balance + ` BDT`}
             </Button>
           )}
-          {balance && (
+          {/* {balance && (
             <Button
               onClick={() => addBalance("user")}
               variant="outlined"
@@ -170,15 +173,16 @@ const handleConfirm = () => {
             >
               Add Balance
             </Button>
-          )}
+          )} */}
           {user.user_address && (
             <Button onClick={signUp} variant="outlined" color="inherit">
               Sign Up
             </Button>
           )}
            <Button variant="outlined" color="inherit" onClick={handleOpen}>
-        Updated
+        Add Balance
       </Button>
+      <Button  variant="outlined" color="inherit"> working</Button>
         </nav>
       </Toolbar>
     </AppBar>
@@ -195,6 +199,14 @@ const handleConfirm = () => {
                 label="Enter Amount"
                 value={amount}
                 onChange={handleAmountChange}
+                fullWidth
+              />
+               <TextField
+                type="text"
+                label="What type of user you are "
+                value={type}
+                onChange={(event) => {
+                  setType(event.target.value)}}
                 fullWidth
               />
             </Grid>
