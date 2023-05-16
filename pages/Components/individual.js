@@ -25,17 +25,22 @@ const vaultStatusColors = {
 
 const VaultFormDialog = ({ open, onClose, onSubmit }) => {
   const [amount, setAmount] = useState('');
+  const [interestRate, setinterestRate] = useState('');
   const {web3, account, contract} = useMifiApi();
 
 
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(amount, contract, account);
+    onSubmit(interestRate, amount, contract, account);
   };
+  
 
   const handleAmountChange = (e) => {
     setAmount(e.target.value);
+  };
+  const handleinterestRateChange = (e) => {
+    setinterestRate(e.target.value);
   };
 
   return (
@@ -45,15 +50,27 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
+            margin="dense"
             label="Amount"
+            type="number"
             value={amount}
             onChange={handleAmountChange}
+            
+          />
+          <TextField
+          margin="dense"
+            fullWidth
+            type="number"
+            label="Interest Rate"
+            value={interestRate}
+            onChange={handleinterestRateChange}
             
           />
         </form>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+      
+        <Button onClick={onClose} >Cancel</Button>
         <Button onClick={handleSubmit} color="primary" variant="contained">
           Confirm
         </Button>
@@ -91,14 +108,6 @@ const FullWidthCard = ({ onOpenDialog }) => {
           onClick={onOpenDialog}
         >
           Create Vault
-        </Button>
-        <Button
-          size="large"
-          variant="contained"
-          color="primary"
-          onClick={checkup}
-        >
-          Check Values
         </Button>
       </CardActions>
     </Card>

@@ -185,7 +185,7 @@ export default function BorrowerPage() {
     </Container>
     </div>
         
-    <div>
+    
 
       <Dialog 
         open={open} 
@@ -253,7 +253,7 @@ export default function BorrowerPage() {
           </Grid>
         </DialogContent>
       </Dialog>
-    </div>
+    
     </>
     
   );
