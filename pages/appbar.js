@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { AppBar, Toolbar, Button, Typography } from "@mui/material";
-import { makeStyles } from "@mui/styles";
+import { makeStyles } from '@material-ui/core/styles';
 import { styled } from "@mui/material/styles";
 import { useRouter } from "next/router";
 import useMifiApi from "./hooks/useMifiApi";
 import Web3 from "web3";
+import {Modal, TextField, Paper, Grid } from '@material-ui/core';
+
 
 const useStyles = makeStyles((theme) => ({
   logo: {
     flexGrow: 1,
+  },
+  paper: {
+    position: 'absolute',
+    width: 400,
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
   },
 }));
 
@@ -18,6 +30,10 @@ export default function AppHeader() {
   const { web3, account, contract } = useMifiApi();
   const [balance, setBalance] = useState(null);
   const [user, setUser] = useState([]);
+  ////////////////confirm ////////////////
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState('');
+  ///////////////////////////////////////
 
   const handleOptionClick = (option) => {
     router.push(`/${option}`);
@@ -88,8 +104,28 @@ export default function AppHeader() {
       console.log(error);
     }
   };
+/////////////////////////////////confirm//////////////////////////
+const handleOpen = () => {
+  setOpen(true);
+};
 
+const handleClose = () => {
+  setOpen(false);
+  setAmount('');
+};
+
+const handleAmountChange = (event) => {
+  setAmount(event.target.value);
+};
+
+const handleConfirm = () => {
+  console.log(`Confirmed adding balance of ${amount}`);
+  handleClose();
+};
+////////////////////////////////////////////////////////////////////
   return (
+    <>
+    
     <AppBar position="static">
       <Toolbar>
         <Typography
@@ -135,13 +171,48 @@ export default function AppHeader() {
               Add Balance
             </Button>
           )}
-          {!user.user_address && (
+          {user.user_address && (
             <Button onClick={signUp} variant="outlined" color="inherit">
               Sign Up
             </Button>
           )}
+           <Button variant="outlined" color="inherit" onClick={handleOpen}>
+        Updated
+      </Button>
         </nav>
       </Toolbar>
     </AppBar>
+
+    <div>
+     
+      <Modal open={open} onClose={handleClose}>
+        <Paper className={classes.paper}>
+          <h2 id="conversion-modal-title">Add Balance</h2>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                type="number"
+                label="Enter Amount"
+                value={amount}
+                onChange={handleAmountChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleConfirm}
+                className={classes.button}
+                fullWidth
+              >
+                Confirm
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Modal>
+    </div>
+    </>
   );
 }

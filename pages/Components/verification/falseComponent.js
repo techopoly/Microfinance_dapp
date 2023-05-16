@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import {makeStyles} from "@material-ui/core/styles";
 import axios from 'axios';
-import useMifiApi from "./hooks/useMifiApi";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { green } from '@mui/material/colors';
-import Head from "./appbar"
+import useMifiApi from "../../hooks/useMifiApi";
+
 import {
   Card,
   CardHeader,
@@ -22,7 +20,6 @@ import {
   InputAdornment,
   IconButton,
   Container,
-  
 } from '@mui/material';
 
 import { PhotoCamera } from '@mui/icons-material';
@@ -52,7 +49,6 @@ const VerificationPage = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { web3, account, contract } = useMifiApi();
-  const [open, setOpen] = useState(false);
 
   const handleUpload = () => {
     setIsUploading(true);
@@ -82,14 +78,6 @@ const VerificationPage = () => {
 
 
     setIsSubmitted(false);
-    setOpen(true);
-    setTimeout(myFunction, 2000);
-
-    
-  };
-
-  const myFunction = () => {
-    setOpen(false);
     setIsDialogOpen(true);
   };
 
@@ -100,7 +88,7 @@ const VerificationPage = () => {
   return (
     
     <>
-    <Head/>
+
     <Container maxWidth="sm" style={{ paddingTop: '64px' }}>
       <Card className={classes.card}>
         <CardHeader title="Identification Verification" />
@@ -128,27 +116,20 @@ const VerificationPage = () => {
             </Button>
           </label>
           {isSubmitted && (
-            <Button variant="contained" color="primary" onClick={handleSubmit} sx={{ marginTop:2,marginLeft:2 }}>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
               Submit
             </Button>
           )}
         </CardContent>
       </Card>
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
-        <DialogTitle sx={{ fontSize: 40 }}>Verification Completed <CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogTitle>Verification Completed</DialogTitle>
         <DialogContent>
           <Typography variant="body1">Your identification has been verified successfully.</Typography>
-          
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Close</Button>
         </DialogActions>
-      </Dialog>
-      <Dialog open={open} maxWidth="xs">
-        <DialogTitle>Loading</DialogTitle>
-        <DialogContent sx={{ textAlign: 'center' }}>
-          <CircularProgress />
-        </DialogContent>
       </Dialog>
     </Container>
     </>

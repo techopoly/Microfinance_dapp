@@ -27,6 +27,8 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
   const [amount, setAmount] = useState('');
   const {web3, account, contract} = useMifiApi();
 
+
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(amount, contract, account);
@@ -46,6 +48,7 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
             label="Amount"
             value={amount}
             onChange={handleAmountChange}
+            
           />
         </form>
       </DialogContent>
@@ -60,6 +63,13 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
 };
 
 const FullWidthCard = ({ onOpenDialog }) => {
+  const {web3, account, contract} = useMifiApi();
+  const checkup = () =>{
+    console.log("Show Contract : ")
+    if(contract){
+     console.log(contract)
+    }
+  }
   return (
     <Card sx={{ minWidth: '100%', marginBottom: '2rem' }}>
       <CardMedia
@@ -81,6 +91,14 @@ const FullWidthCard = ({ onOpenDialog }) => {
           onClick={onOpenDialog}
         >
           Create Vault
+        </Button>
+        <Button
+          size="large"
+          variant="contained"
+          color="primary"
+          onClick={checkup}
+        >
+          Check Values
         </Button>
       </CardActions>
     </Card>
