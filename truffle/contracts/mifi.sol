@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import "@openzeppelin/contracts/access/Ownable.sol";
-// import "hashs/SHA3.sol";
-
-contract Mifi {
+contract DeFiPlatform {
     // IERC20 public stablecoin;
 
     struct User {
@@ -23,11 +19,13 @@ contract Mifi {
         address staker;
         uint256 start_date;
         uint256 vault_id;
+        string vault_type;
         uint256 borrowing_group_id;
         uint256 no_of_installments;
         uint256 no_of_installments_done;
         uint256 each_installment_amount;
         uint256 each_term;
+        uint256 next_term_due_date;
     }
 
     struct Staker {
@@ -41,13 +39,28 @@ contract Mifi {
 
     struct Vault {
         address vault_owner;
+        uint256 vault_id;
         uint256 total_supply;
         uint256 remaining_supply;
         uint256 interest_rate;
         uint256 interest_earned;
         uint256 creation_date;
-        mapping(address => uint256) member_contribution;
         Status status;
+    }
+    struct Group_Vault {
+        address protocol_manager;
+        uint256 vault_id;
+        uint256 total_supply;
+        uint256 remaining_supply;
+        uint256 interest_rate;
+        uint256 interest_earned;
+        uint256 creation_date;
+        Contribution[] member_contribution;
+        Status status;
+    }
+    struct Contribution {
+        address member;
+        uint256 contribution;
     }
 
     struct Borrowing_group {
@@ -63,13 +76,15 @@ contract Mifi {
     }
 
     mapping(address => User) public address_user;
+    mapping(uint256 => Vault) public vaultId_vault;
+    mapping(uint256 => Group_Vault) public groupVaultId_vault;
     mapping(address => Staker) public address_staker;
     mapping(uint256 => Loan) public loanId_loan;
-    mapping(uint256 => Vault) public vaultId_vault;
     mapping(uint256 => Borrowing_group) public groupId_borrowingGroup;
 
     uint256 private last_borrowing_group_id;
     uint256 private last_vault_id;
+    uint256 private last_group_vault_id;
     uint256 private last_loan_id;
     address owner;
 
@@ -79,6 +94,7 @@ contract Mifi {
         owner = payable(msg.sender);
         last_borrowing_group_id = 0;
         last_vault_id = 0;
+        last_group_vault_id = 0;
         last_loan_id = 0;
     }
 
@@ -128,6 +144,7 @@ contract Mifi {
         // vaultId_vault[vault_id] = Vault({});
         Vault storage vault = vaultId_vault[vault_id];
         vault.vault_owner = msg.sender;
+        vault.vault_id = vault_id;
         vault.total_supply = total_amount;
         vault.remaining_supply = total_amount; //remaining balance
         vault.interest_rate = interest_rate;
@@ -140,44 +157,78 @@ contract Mifi {
         //     msg.sender == pm_address;
         //     "only pm can initiate a group vault"
         // ); //
-        uint256 vault_id = last_vault_id++;
-        Vault storage vault = vaultId_vault[vault_id];
-        vault.interest_rate = interest_rate;
-        vault.status = Status.pending;
+        uint256 vault_id = last_group_vault_id + 1;
+        last_borrowing_group_id++;
+        Group_Vault storage group_vault = groupVaultId_vault[vault_id];
+        group_vault.protocol_manager = msg.sender;
+        group_vault.interest_rate = interest_rate;
+        group_vault.status = Status.pending;
+        group_vault.vault_id = vault_id;
     }
 
-    function join_group_vault(uint256 contribution, uint256 vault_id) external {
+    function join_group_vault(uint256 _contribution, uint256 _vault_id)
+        external
+    {
         require(
-            address_user[msg.sender].balance >= contribution,
+            address_user[msg.sender].balance >= _contribution,
             "Insufficient balance"
         );
         require(
             address_user[msg.sender].is_nid_verified == true,
             "NID is not verified"
         );
+        User storage user = address_user[msg.sender];
+        groupVaultId_vault[_vault_id].total_supply += _contribution;
+        user.balance = user.balance - _contribution;
 
-        vaultId_vault[vault_id].total_supply += contribution;
-        vaultId_vault[vault_id].member_contribution[msg.sender] = contribution;
+        Contribution memory contribution = Contribution({
+            member: msg.sender,
+            contribution: _contribution
+        });
+        groupVaultId_vault[_vault_id].member_contribution.push(contribution);
     }
 
-    function approve_vault(uint256 vault_id) external {
+    function approve_vault(uint256 vault_id, string memory vault_type)
+        external
+    {
+        string memory _individual = "individual";
+        string memory _group = "group";
         //for individual vault
-        if (vaultId_vault[vault_id].vault_owner != address(0)) {
-            vaultId_vault[vault_id].status = Status.approved;
-            vaultId_vault[vault_id].creation_date = block.timestamp;
-            vaultId_vault[vault_id].remaining_supply = vaultId_vault[vault_id]
-                .total_supply;
+        if (
+            keccak256(abi.encodePacked(vault_type)) ==
+            keccak256(abi.encodePacked(_individual))
+        ) {
+            if (vaultId_vault[vault_id].vault_owner != address(0)) {
+                vaultId_vault[vault_id].status = Status.approved;
+                vaultId_vault[vault_id].creation_date = block.timestamp;
+                vaultId_vault[vault_id].remaining_supply = vaultId_vault[
+                    vault_id
+                ].total_supply;
+            }
+        }
+        if (
+            keccak256(abi.encodePacked(vault_type)) ==
+            keccak256(abi.encodePacked(_group))
+        ) {
+            if (groupVaultId_vault[vault_id].protocol_manager != address(0)) {
+                groupVaultId_vault[vault_id].status = Status.approved;
+                groupVaultId_vault[vault_id].creation_date = block.timestamp;
+                groupVaultId_vault[vault_id]
+                    .remaining_supply = groupVaultId_vault[vault_id]
+                    .total_supply;
+            }
         }
     }
 
     function individual_borrow(
         uint256 _vault_id,
+        string memory _vault_type,
         uint256 _amount,
         uint256 _each_installment_amount,
         uint256 _no_of_installments,
         uint256 _each_term
     ) external {
-        require(_amount <= 10000, "exceeded loan limit. Only upto 10000 taka");
+        require(_amount <= 100000, "exceeded loan limit. Only upto 10000 taka");
         uint256 loan_id = last_loan_id + 1;
         last_loan_id++;
 
@@ -186,35 +237,69 @@ contract Mifi {
             amount: _amount,
             status: Status.pending,
             vault_id: _vault_id,
+            vault_type: _vault_type,
             no_of_installments: _no_of_installments,
             each_installment_amount: _each_installment_amount,
             each_term: _each_term,
             staker: address(0), // Add a default value or a suitable value for the staker field
             start_date: 0, // Add a default value or a suitable value for the start_date field
             borrowing_group_id: 0, // Add a default value or a suitable value for the borrowing_group_id field
-            no_of_installments_done: 0 // Add a default value for the no_of_installments_done field
-            // interest_rate: 0 // Add a default value or a suitable value for the interest_rate field
+            no_of_installments_done: 0, // Add a default value for the no_of_installments_done field
+            next_term_due_date: 0
         });
         loanId_loan[loan_id] = loan;
     }
 
-    function approve_loan(uint256 _loan_id) external {
-        require(
-            vaultId_vault[loanId_loan[_loan_id].vault_id].total_supply >=
-                loanId_loan[_loan_id].amount,
-            "Not enough fund in the vault"
-        );
-        require(loanId_loan[_loan_id].staker != address(0), "no staker found");
+    function approve_loan(uint256 _loan_id, string memory vault_type) external {
+        string memory _individual = "individual";
+        string memory _group = "group";
+        //for individual vault
+        if (
+            keccak256(abi.encodePacked(vault_type)) ==
+            keccak256(abi.encodePacked(_individual))
+        ) {
+            require(
+                vaultId_vault[loanId_loan[_loan_id].vault_id]
+                    .remaining_supply >= loanId_loan[_loan_id].amount,
+                "Not enough fund in the vault"
+            );
+            require(
+                loanId_loan[_loan_id].staker != address(0),
+                "No staker found"
+            );
 
-        User storage user = address_user[loanId_loan[_loan_id].borrower];
-        user.balance += loanId_loan[
-            _loan_id
-        ].amount;
-        vaultId_vault[loanId_loan[_loan_id].vault_id]
-            .total_supply -= loanId_loan[_loan_id].amount;
+            User storage user = address_user[loanId_loan[_loan_id].borrower];
+            user.loan_id.push(_loan_id);
+            user.balance += loanId_loan[_loan_id].amount;
+            vaultId_vault[loanId_loan[_loan_id].vault_id]
+                .remaining_supply -= loanId_loan[_loan_id].amount;
+            loanId_loan[_loan_id].status = Status.approved;
+            loanId_loan[_loan_id].start_date = block.timestamp;
+        }
+        if (
+            keccak256(abi.encodePacked(vault_type)) ==
+            keccak256(abi.encodePacked(_group))
+        ) {
+            require(
+                groupVaultId_vault[loanId_loan[_loan_id].vault_id]
+                    .remaining_supply >= loanId_loan[_loan_id].amount,
+                "Not enough fund in the vault"
+            );
+            require(
+                loanId_loan[_loan_id].staker != address(0),
+                "No staker found"
+            );
+
+            User storage user = address_user[loanId_loan[_loan_id].borrower];
+            user.balance += loanId_loan[_loan_id].amount;
+            groupVaultId_vault[loanId_loan[_loan_id].vault_id]
+                .remaining_supply -= loanId_loan[_loan_id].amount;
+            loanId_loan[_loan_id].status = Status.approved;
+            loanId_loan[_loan_id].start_date = block.timestamp;
+        }
     }
 
-    function cashout_loan(uint256 _amount) external {
+    function cashout_balance(uint256 _amount) external {
         // require(msg.sender == owner, "Only the owner can transfer money from contract.");
         require(
             address_user[msg.sender].balance >= _amount,
@@ -224,53 +309,197 @@ contract Mifi {
             address(this).balance >= _amount,
             "Not enough balance in the contract."
         );
-        uint256 cashout_amount = _amount - calculate_fees(_amount);
+        uint256 cashout_amount = _amount - calculate_fees(_amount, 1);
         payable(msg.sender).transfer(cashout_amount);
         address_user[msg.sender].balance -= _amount;
     }
 
-    function individual_installment_repay_wtih_interest(uint256 _loan_id)
-        external
-        payable
-    {
+    function individual_installment_repay_wtih_interest(
+        uint256 _loan_id,
+        string memory _vault_type
+    ) external payable {
         uint256 installment_amount = loanId_loan[_loan_id]
             .each_installment_amount;
-        uint256 vault_id = loanId_loan[_loan_id].vault_id;
-        Vault storage vault = vaultId_vault[vault_id];
-        require(
-            msg.value >= installment_amount,
-            "Amount must be equal or more than each_term"
-        );
-        loanId_loan[_loan_id].no_of_installments_done += 1;
-        // add the interest later. will deal with fixed point number.
-        vault.remaining_supply = installment_amount;
-        vault.interest_earned = calculate_interest();
-        //calculate credit score for borrower, lender, staker
-        // give staker the reward
+        uint256 interest_earned;
+        uint256 staker_fee;
+        uint256 vault_type = detect_vault(_vault_type);
+        if (vault_type == 0) {
+            uint256 vault_id = loanId_loan[_loan_id].vault_id;
+            Vault storage vault = vaultId_vault[vault_id];
+            uint256 interest_rate = vault.interest_rate;
+            require(
+                msg.value >= installment_amount,
+                "Amount must be equal or more than each_term"
+            );
+            loanId_loan[_loan_id].no_of_installments_done += 1;
+            uint256 capital_amount = breakdown_repayment(
+                installment_amount,
+                interest_rate
+            );
+            vault.remaining_supply += capital_amount;
+            interest_earned = installment_amount - capital_amount;
+            staker_fee = calculate_fees(interest_earned, 5);
+            vault.interest_earned = interest_earned - staker_fee;
+            //calculate credit score for borrower
+            update_credit_score(msg.sender);
+            // give staker the reward
+            address_staker[loanId_loan[_loan_id].staker].reward = staker_fee;
+        }
+        if (vault_type == 1) {
+            uint256 vault_id = loanId_loan[_loan_id].vault_id;
+            Group_Vault storage vault = groupVaultId_vault[vault_id];
+            uint256 interest_rate = vault.interest_rate;
+            require(
+                msg.value >= installment_amount,
+                "Amount must be equal or more than each installment amount"
+            );
+            loanId_loan[_loan_id].no_of_installments_done += 1;
+            // add the interest
+            uint256 capital_amount = breakdown_repayment(
+                installment_amount,
+                interest_rate
+            );
+            vault.remaining_supply += capital_amount;
+            interest_earned = installment_amount - capital_amount;
+            staker_fee = calculate_fees(interest_earned, 5);
+            vault.interest_earned = interest_earned - staker_fee;
+            //calculate credit score for borrower
+            update_credit_score(msg.sender);
+            // give staker the reward
+            address_staker[loanId_loan[_loan_id].staker].reward = staker_fee;
+        }
     }
 
-    function calculate_fees(uint256 _amount) internal pure returns (uint256) {
-        return 100;
+    function detect_vault(string memory _vault_type)
+        internal
+        pure
+        returns (uint256)
+    {
+        string memory _individual = "individual";
+        string memory _group = "group";
+
+        if (
+            keccak256(abi.encodePacked(_vault_type)) ==
+            keccak256(abi.encodePacked(_individual))
+        ) {
+            return 0;
+        }
+        if (
+            keccak256(abi.encodePacked(_vault_type)) ==
+            keccak256(abi.encodePacked(_group))
+        ) {
+            return 1;
+        }
+        return 400;
     }
 
-    function calculate_interest() internal pure returns (uint256) {
-        return 200;
+
+    function update_credit_score(address user_address)
+        public
+        returns (uint256)
+    {
+        User storage user = address_user[user_address];
+
+        uint256 total_loans_taken = user.loan_id.length;
+        uint256 total_loan_repaid = 0;
+        uint256 timely_repayments = 0;
+        uint256 total_repayment_days = 0;
+        uint256 defaults = 0;
+        uint256 time_elapsed;
+        uint256 avg_repayment_per_day = 0;
+
+        for (uint256 i = 0; i < total_loans_taken; i++) {
+            Loan storage loan = loanId_loan[user.loan_id[i]];
+            total_loan_repaid +=
+                loan.no_of_installments_done *
+                loan.each_installment_amount;
+            total_repayment_days +=
+                loan.no_of_installments_done *
+                (loan.each_term / 86400);
+            time_elapsed = block.timestamp - loan.start_date;
+            if (loan.each_term != 0) {
+                defaults =
+                    loan.no_of_installments_done -
+                    (time_elapsed / loan.each_term);
+            }
+            timely_repayments = loan.no_of_installments_done;
+        }
+
+        if (total_repayment_days != 0) {
+            avg_repayment_per_day = total_loan_repaid / total_repayment_days;
+        }
+
+        uint256 new_credit_score = (total_loans_taken * 5) +
+            (total_loan_repaid / 1000) +
+            (timely_repayments * 10) +
+            (avg_repayment_per_day / 10) -
+            (defaults * 20);
+
+        if (new_credit_score > 100) {
+            user.credit_score = 100;
+            return 100;
+        } else if (new_credit_score < 0) {
+            user.credit_score = 0;
+            return 0;
+        } else {
+            user.credit_score = new_credit_score;
+            return new_credit_score;
+        }
     }
 
-function add_balance(string memory user_type) external payable {
-    string memory _user = "user";
-    string memory _staker = "staker";
-    if (keccak256(abi.encodePacked(user_type)) == keccak256(abi.encodePacked(_user))) {
-        uint256 amount = msg.value;
-        address_user[msg.sender].balance =
-            address_user[msg.sender].balance +
-            amount;
+    function breakdown_repayment(
+        uint256 repayment_amount,
+        uint256 interest_rate
+    ) internal pure returns (uint256) {
+        uint256 capital_amount = (100 * repayment_amount) /
+            (100 + interest_rate);
+        return capital_amount;
     }
-    if(keccak256(abi.encodePacked(user_type)) == keccak256(abi.encodePacked(_staker))){
-        Staker storage staker = address_staker[msg.sender];
-        staker.balance += msg.value;
+
+    function calculate_fees(uint256 _amount, uint256 rate)
+        internal
+        pure
+        returns (uint256)
+    {
+        uint256 x = _amount;
+        uint256 y = rate; //fee = 1%
+        uint256 decimals = 2; // Number of decimal places
+
+        uint256 result = (x * y) / (10**decimals);
+        return result;
     }
-}
+
+    function calculate_interest(uint256 _amount, uint256 interest_rate)
+        internal
+        pure
+        returns (uint256)
+    {
+        uint256 x = _amount;
+        uint256 y = interest_rate; //interest_rate(1%-10%)
+        uint256 decimals = 2; // Number of decimal places
+
+        uint256 result = (x * y) / (10**decimals);
+        return result;
+    }
+
+    function add_balance(string memory user_type) external payable {
+        string memory _user = "user";
+        string memory _staker = "staker";
+        if (
+            keccak256(abi.encodePacked(user_type)) ==
+            keccak256(abi.encodePacked(_user))
+        ) {
+            uint256 amount = msg.value;
+            address_user[msg.sender].balance += amount;
+        }
+        if (
+            keccak256(abi.encodePacked(user_type)) ==
+            keccak256(abi.encodePacked(_staker))
+        ) {
+            Staker storage staker = address_staker[msg.sender];
+            staker.balance += msg.value;
+        }
+    }
 
     function add_user() external {
         address_user[msg.sender] = User({
@@ -306,5 +535,39 @@ function add_balance(string memory user_type) external payable {
 
     function show_contract_balance() external view returns (uint256) {
         return address(this).balance;
+    }
+
+    function show_all_individual_vault() public view returns (Vault[] memory) {
+        uint256 size = last_vault_id; // determine the size of the mapping
+        Vault[] memory vaultArray = new Vault[](size);
+
+        for (uint256 i = 1; i <= size; i++) {
+            vaultArray[i - 1] = vaultId_vault[i];
+        }
+        return vaultArray;
+    }
+
+    function show_all_group_vault() public view returns (Group_Vault[] memory) {
+        uint256 size = last_group_vault_id; // determine the size of the mapping
+        Group_Vault[] memory group_vautl_array = new Group_Vault[](size);
+
+        for (uint256 i = 1; i <= size; i++) {
+            group_vautl_array[i - 1] = groupVaultId_vault[i];
+        }
+        return group_vautl_array;
+    }
+
+    function show_all_loan() public view returns (Loan[] memory) {
+        uint256 size = last_loan_id; // determine the size of the mapping
+        Loan[] memory loanArray = new Loan[](size);
+
+        for (uint256 i = 1; i <= size; i++) {
+            loanArray[i - 1] = loanId_loan[i];
+        }
+        return loanArray;
+    }
+
+    function time() public view returns (uint256) {
+        return block.timestamp;
     }
 }
