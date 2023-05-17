@@ -130,10 +130,10 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(account, contract, amount,interestRate);
+    onSubmit(account, contract, amount, interestRate);
     const response = await contract.methods
-          .vaultId_vault(1)
-          .call({ from: account[0] });
+      .vaultId_vault(0)
+      .call({ from: account[0] });
     console.log(response);
   };
 
@@ -222,8 +222,7 @@ const BoldTableCell = styled(TableCell)({
 });
 
 const LendersTable = () => {
-
-  const{web3, account, contract} = useMifiApi();
+  const { web3, account, contract } = useMifiApi();
   const [allVaults, setAllVaults] = useState([]);
 
   useEffect(() => {
@@ -236,6 +235,10 @@ const LendersTable = () => {
             .call({ from: account[0] });
           console.log("vaults: ", vaults);
           setAllVaults(vaults);
+          const response = await contract.methods
+            .vaultId_vault(2)
+            .call({ from: account[0] });
+          console.log("vault:1 ", response);
         }
       } catch (error) {
         console.log(error);
@@ -258,14 +261,14 @@ const LendersTable = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {dummyData.map((data) => (
+          {allVaults.map((data) => (
             <TableRow key={data.id}>
-              <TableCell>{data.id}</TableCell>
-              <TableCell>{data.totalSupply}</TableCell>
-              <TableCell>{data.remainingSupply}</TableCell>
-              <TableCell>{data.interestRate}%</TableCell>
-              <TableCell>{data.interestEarned}</TableCell>
-              <TableCell>{data.creationDate}</TableCell>
+              <TableCell>{data.vault_id}</TableCell>
+              <TableCell>{data.total_supply}</TableCell>
+              <TableCell>{data.remaining_supply}</TableCell>
+              <TableCell>{data.interest_rate}%</TableCell>
+              <TableCell>{data.interest_earned}</TableCell>
+              <TableCell>{data.creation_date}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -285,7 +288,7 @@ const IndividualLendersPage = () => {
     setDialogOpen(false);
   };
 
-  const handleConfirmDialog = async (account,contract,amount,rate) => {
+  const handleConfirmDialog = async (account, contract, amount, rate) => {
     // Do something with the amount
     try {
       console.log(contract);
