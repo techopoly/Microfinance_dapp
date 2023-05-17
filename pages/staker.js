@@ -136,6 +136,7 @@ export default function StakerPage() {
   const [conversionDirection, setConversionDirection] = useState('ETH_TO_BDT');
 
   const conversionRate = 193207.53; // 1 ETH = 193207.53 BDT (use a service/API to fetch this dynamically)
+  const [loans, setloans] = useState([]);
   //////////////////////////////////////////////////////////
 
   useEffect(() => {
@@ -220,6 +221,26 @@ const handleSwap = () => {
   setAmount('');
   setConvertedAmount('');
 };
+
+
+useEffect(() => {
+  const getAllVaults = async () => {
+    try {
+      console.log("Watch Hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+      console.log(contract);
+      if (contract) {
+        const fetchloans = await contract.methods
+          .show_all_loan()
+          .call({ from: account[0] });
+        console.log("vaults: ", vaults);
+        setloans(fetchloans);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  getAllVaults();
+}, [contract]);
 ///////////////////////////////////////////////////////////////
   return (
     <>

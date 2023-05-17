@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import useMifiApi from "./hooks/useMifiApi";
 import Web3 from "web3";
 import {Modal, TextField, Paper, Grid } from '@material-ui/core';
+import Rightbar from "./rightbar"
 
 
 const useStyles = makeStyles((theme) => ({
@@ -38,6 +39,10 @@ export default function AppHeader() {
 
   const handleOptionClick = (option) => {
     router.push(`/${option}`);
+  };
+
+  const Click = (option) => {
+    router.push(`/${option}/${account}`);
   };
 
   useEffect(() => {
@@ -138,7 +143,7 @@ const handleConfirm = () => {
         >
           MicroLoan
         </Typography>
-        <nav>
+        <nav style={{ display: 'flex', alignItems: 'center' }}>
           <Button color="inherit">My Website</Button>
           <Button color="inherit">About Us</Button>
           <Button color="inherit">Apply for Loan</Button>
@@ -152,11 +157,12 @@ const handleConfirm = () => {
           >
             Protocol Manager
           </Button>
+ 
           <Button variant="outlined" color="inherit">
             {account ? "Connected" : "Connect Metamask"}
           </Button>
           {account && (
-            <Button variant="outlined" color="inherit">
+            <Button variant="outlined" color="inherit"  onClick={() => Click("user")} >
               {account}
             </Button>
           )}
@@ -182,7 +188,6 @@ const handleConfirm = () => {
            <Button variant="outlined" color="inherit" onClick={handleOpen}>
         Add Balance
       </Button>
-      <Button  variant="outlined" color="inherit"> working</Button>
         </nav>
       </Toolbar>
     </AppBar>
