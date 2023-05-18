@@ -163,7 +163,7 @@ contract Mifi {
         //     "only pm can initiate a group vault"
         // ); //
         uint256 vault_id = last_group_vault_id + 1;
-        last_borrowing_group_id++;
+        last_group_vault_id++;
         Group_Vault storage group_vault = groupVaultId_vault[vault_id];
         group_vault.protocol_manager = msg.sender;
         group_vault.interest_rate = interest_rate;

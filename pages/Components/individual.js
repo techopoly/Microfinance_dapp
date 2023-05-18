@@ -24,99 +24,6 @@ import { styled } from "@mui/material/styles";
 import useMifiApi from "../hooks/useMifiApi";
 import vault from "../vaultmanagement";
 
-const dummyData = [
-  {
-    id: "VL0001",
-    totalSupply: 10000,
-    remainingSupply: 6000,
-    interestRate: 5,
-    interestEarned: 1000,
-    creationDate: "2022-01-01",
-    status: "approved",
-  },
-  {
-    id: "VL0002",
-    totalSupply: 20000,
-    remainingSupply: 8000,
-    interestRate: 6,
-    interestEarned: 1500,
-    creationDate: "2022-01-02",
-    status: "pending",
-  },
-  {
-    id: "VL0003",
-    totalSupply: 15000,
-    remainingSupply: 5000,
-    interestRate: 4,
-    interestEarned: 800,
-    creationDate: "2022-01-03",
-    status: "denied",
-  },
-  {
-    id: "VL0004",
-    totalSupply: 18000,
-    remainingSupply: 10000,
-    interestRate: 5.5,
-    interestEarned: 1200,
-    creationDate: "2022-01-04",
-    status: "approved",
-  },
-  {
-    id: "VL0005",
-    totalSupply: 25000,
-    remainingSupply: 15000,
-    interestRate: 6.5,
-    interestEarned: 1800,
-    creationDate: "2022-01-05",
-    status: "pending",
-  },
-  {
-    id: "VL0006",
-    totalSupply: 12000,
-    remainingSupply: 6000,
-    interestRate: 4.5,
-    interestEarned: 600,
-    creationDate: "2022-01-06",
-    status: "approved",
-  },
-  {
-    id: "VL0007",
-    totalSupply: 22000,
-    remainingSupply: 8000,
-    interestRate: 6,
-    interestEarned: 1500,
-    creationDate: "2022-01-07",
-    status: "pending",
-  },
-  {
-    id: "VL0008",
-    totalSupply: 18000,
-    remainingSupply: 8000,
-    interestRate: 5.5,
-    interestEarned: 1200,
-    creationDate: "2022-01-08",
-    status: "denied",
-  },
-  {
-    id: "VL0009",
-    totalSupply: 15000,
-    remainingSupply: 8000,
-    interestRate: 4,
-    interestEarned: 800,
-    creationDate: "2022-01-09",
-    status: "approved",
-  },
-  {
-    id: "VL0010",
-    totalSupply: 20000,
-    remainingSupply: 10000,
-    interestRate: 6,
-    interestEarned: 1500,
-    creationDate: "2022-01-10",
-    status: "denied",
-  },
-];
-
 const vaultStatusColors = {
   approved: green[500],
   pending: yellow[500],
@@ -221,7 +128,7 @@ const BoldTableCell = styled(TableCell)({
   fontWeight: "bold",
 });
 
-const LendersTable = () => {
+const LendersTable = (props) => {
   const { web3, account, contract } = useMifiApi();
   const [allVaults, setAllVaults] = useState([]);
 
@@ -245,7 +152,16 @@ const LendersTable = () => {
       }
     };
     getAllVaults();
-  }, [contract]);
+  }, [contract, props]);
+
+  const getStatus = (status) => {
+    if (status == 0) {
+      return "Pending";
+    }
+    if (status == 1) {
+      return "Approved";
+    }
+  };
 
   return (
     <TableContainer component={Paper}>
@@ -258,17 +174,19 @@ const LendersTable = () => {
             <BoldTableCell>Interest Rate</BoldTableCell>
             <BoldTableCell>Interest Earned</BoldTableCell>
             <BoldTableCell>Creation Date</BoldTableCell>
+            <BoldTableCell>Vault Status</BoldTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {allVaults.map((data) => (
-            <TableRow key={data.id}>
+            <TableRow key={data.vault_id}>
               <TableCell>{data.vault_id}</TableCell>
               <TableCell>{data.total_supply}</TableCell>
               <TableCell>{data.remaining_supply}</TableCell>
               <TableCell>{data.interest_rate}%</TableCell>
               <TableCell>{data.interest_earned}</TableCell>
               <TableCell>{data.creation_date}</TableCell>
+              <TableCell>{getStatus(data.status)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -279,6 +197,7 @@ const LendersTable = () => {
 
 const IndividualLendersPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [refresh, setRefresh] = useState(true);
 
   const handleOpenDialog = () => {
     setDialogOpen(true);
@@ -296,6 +215,12 @@ const IndividualLendersPage = () => {
         const response = await contract.methods
           .create_individual_vault(amount, rate)
           .send({ from: account[0] });
+        // setAllVaults(
+        //   await contract.methods
+        //     .show_all_individual_vault()
+        //     .call({ from: account[0]})
+        // );
+        setRefresh(!refresh);        
       }
     } catch (error) {
       console.log(error);
@@ -307,8 +232,8 @@ const IndividualLendersPage = () => {
 
   return (
     <div>
-      <FullWidthCard onOpenDialog={handleOpenDialog} />
-      <LendersTable />
+      <FullWidthCard onOpenDialog={handleOpenDialog} />      
+      <LendersTable refresh={refresh}/>
       <VaultFormDialog
         open={dialogOpen}
         onClose={handleCloseDialog}

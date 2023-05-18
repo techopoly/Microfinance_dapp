@@ -13,19 +13,11 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
 } from "@mui/material";
 
 export default function GroupVault() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [vaultId, setVaultId] = useState("");
   const [interestRate, setInterestRate] = useState("");
-  const [capacity, setCapacity] = useState("");
-  const [lastJoiningDate, setLastJoiningDate] = useState("");
   const {web3, account, contract} = useMifiApi();
 
   const handleDialogOpen = () => {
@@ -34,27 +26,15 @@ export default function GroupVault() {
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
-    setVaultId("");
     setInterestRate("");
     setCapacity("");
-    setLastJoiningDate("");
   };
 
-  const handleVaultIdChange = (event) => {
-    setVaultId(event.target.value);
-  };
 
   const handleInterestRateChange = (event) => {
     setInterestRate(event.target.value);
   };
 
-  const handleCapacityChange = (event) => {
-    setCapacity(event.target.value);
-  };
-
-  const handleLastJoiningDateChange = (event) => {
-    setLastJoiningDate(event.target.value);
-  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -103,17 +83,6 @@ export default function GroupVault() {
         <form onSubmit={handleSubmit}>
           <DialogTitle>Initialize New Vault</DialogTitle>
           <DialogContent>
-            {/* <TextField
-              autoFocus
-              margin="dense"
-              id="vaultId"
-              label="Vault ID"
-              type="text"
-              fullWidth
-              required
-              value={vaultId}
-              onChange={handleVaultIdChange}
-            /> */}
             <TextField
               margin="dense"
               id="interestRate"
@@ -124,33 +93,6 @@ export default function GroupVault() {
               value={interestRate}
               onChange={handleInterestRateChange}
             />
-            {/* <FormControl fullWidth required margin="dense">
-              <InputLabel id="capacity-label">Vault Capacity</InputLabel>
-              <Select
-                labelId="capacity-label"
-                id="capacity"
-                value={capacity}
-                onChange={handleCapacityChange}
-              >
-                <MenuItem value="small">Small</MenuItem>
-                <MenuItem value="medium">Medium</MenuItem>
-                <MenuItem value="large">Large</MenuItem>
-              </Select>
-              <FormHelperText>Select the Vault Capacity</FormHelperText>
-            </FormControl>
-            <TextField
-              margin="dense"
-              id="lastJoiningDate"
-              label="Last Joining Date"
-              type="date"
-              fullWidth
-              required
-              value={lastJoiningDate}
-              onChange={handleLastJoiningDateChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            /> */}
           </DialogContent>
           <DialogActions>
         <Button onClick={handleDialogClose}>Cancel</Button>
