@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Testgroup from './testGroup';
+import useMifiApi from "../hooks/useMifiApi";
+
 import {
   Card,
   CardContent,
@@ -24,6 +26,7 @@ export default function GroupVault() {
   const [interestRate, setInterestRate] = useState("");
   const [capacity, setCapacity] = useState("");
   const [lastJoiningDate, setLastJoiningDate] = useState("");
+  const {web3, account, contract} = useMifiApi();
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -55,8 +58,26 @@ export default function GroupVault() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    initiateGroupVault(interestRate);
     setIsDialogOpen(false);
     // Perform further actions with form data
+  };
+
+  const initiateGroupVault = async (interestRate) => {
+    try {
+      if (contract) {
+        const response = await contract.methods
+          .initiate_group_vault(interestRate)
+          .send({ from: account[0]});
+          console.log('response: ', response);
+         const vaults = await contract.methods
+         .show_all_group_vault()
+         .call({ from: account[0]});
+         console.log('all Vaults: ', vaults);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -82,7 +103,7 @@ export default function GroupVault() {
         <form onSubmit={handleSubmit}>
           <DialogTitle>Initialize New Vault</DialogTitle>
           <DialogContent>
-            <TextField
+            {/* <TextField
               autoFocus
               margin="dense"
               id="vaultId"
@@ -92,7 +113,7 @@ export default function GroupVault() {
               required
               value={vaultId}
               onChange={handleVaultIdChange}
-            />
+            /> */}
             <TextField
               margin="dense"
               id="interestRate"
@@ -103,7 +124,7 @@ export default function GroupVault() {
               value={interestRate}
               onChange={handleInterestRateChange}
             />
-            <FormControl fullWidth required margin="dense">
+            {/* <FormControl fullWidth required margin="dense">
               <InputLabel id="capacity-label">Vault Capacity</InputLabel>
               <Select
                 labelId="capacity-label"
@@ -129,7 +150,7 @@ export default function GroupVault() {
               InputLabelProps={{
                 shrink: true,
               }}
-            />
+            /> */}
           </DialogContent>
           <DialogActions>
         <Button onClick={handleDialogClose}>Cancel</Button>

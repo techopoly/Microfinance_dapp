@@ -13,7 +13,7 @@ const UserDetails = () => {
 
 
     useEffect(() => {
-        const getAllVaults = async () => {
+        const getUserInfo = async () => {
           try {
             console.log(contract);
             if (contract) {
@@ -29,7 +29,7 @@ const UserDetails = () => {
             console.log(error);
           }
         };
-        getAllVaults();
+        getUserInfo();
 
         
       }, [contract]);

@@ -55,10 +55,10 @@ contract Mifi {
         uint256 interest_rate;
         uint256 interest_earned;
         uint256 creation_date;
-        Contribution[] member_contribution;
         Status status;
     }
     struct Contribution {
+        uint256 vault_id;
         address member;
         uint256 contribution;
     }
@@ -81,6 +81,7 @@ contract Mifi {
     mapping(address => Staker) public address_staker;
     mapping(uint256 => Loan) public loanId_loan;
     mapping(uint256 => Borrowing_group) public groupId_borrowingGroup;
+    mapping(uint256 => Contribution[]) public groupVaultId_contribution;
 
     uint256 private last_borrowing_group_id;
     uint256 private last_vault_id;
@@ -112,7 +113,11 @@ contract Mifi {
     function stake(uint256 loan_id) external {
         require(
             address_staker[msg.sender].balance > loanId_loan[loan_id].amount,
-            "You don't have enough balance"
+            "You don't have enough balance. you balance is "
+        );
+        require(
+            address_staker[msg.sender].is_nid_verified == true,
+            "Staker NID is not verified"
         );
 
         loanId_loan[loan_id].staker = msg.sender;
@@ -182,10 +187,11 @@ contract Mifi {
         user.balance = user.balance - _contribution;
 
         Contribution memory contribution = Contribution({
+            vault_id: _vault_id,
             member: msg.sender,
             contribution: _contribution
         });
-        groupVaultId_vault[_vault_id].member_contribution.push(contribution);
+        groupVaultId_contribution[_vault_id].push(contribution);
     }
 
     function approve_vault(uint256 vault_id, string memory vault_type)
@@ -393,7 +399,6 @@ contract Mifi {
         return 400;
     }
 
-
     function update_credit_score(address user_address)
         public
         returns (uint256)
@@ -556,6 +561,11 @@ contract Mifi {
         }
         return group_vautl_array;
     }
+
+      function show_contribution(uint _vault_id) public view returns (Contribution[] memory) {
+        return groupVaultId_contribution[_vault_id];
+    }
+
 
     function show_all_loan() public view returns (Loan[] memory) {
         uint256 size = last_loan_id; // determine the size of the mapping
