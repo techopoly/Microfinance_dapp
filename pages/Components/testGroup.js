@@ -58,7 +58,7 @@ const GroupLenders = (props) => {
     };
     getAllVaults();
     console.log(props.props);
-  }, [contract, props.props]);
+  }, [contract, props.props,vaults]);
 
   const showContribution = async (vault_id) => {
     try {
@@ -161,6 +161,14 @@ const GroupLenders = (props) => {
         return "";
     }
   };
+
+  function convertTimestampToDateString(timestamp) {
+    const milliseconds = timestamp * 1000; // Convert to milliseconds
+    const date = new Date(milliseconds);
+    const dateString = date.toDateString(); // Get the date string
+  
+    return dateString;
+  }
   return (
     <>
       <TableContainer>
@@ -202,7 +210,7 @@ const GroupLenders = (props) => {
                 </TableCell>
                 <TableCell sx={{ minWidth: 200 }}  align="center">{group.total_supply}</TableCell>
                 <TableCell sx={{ minWidth: 200 }} align="center">{group.interest_rate}%</TableCell>
-                <TableCell sx={{ minWidth: 200 }} align="center">{group.creation_date}</TableCell>
+                <TableCell sx={{ minWidth: 200 }} align="center">{convertTimestampToDateString(group.creation_date)}</TableCell>
                 <TableCell>
                   <Select
                   
