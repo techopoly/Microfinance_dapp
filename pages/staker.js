@@ -6,6 +6,7 @@ import {
   Typography,
   CardMedia,
   Select,
+  Box,
   Button,
   Dialog,
   DialogTitle,
@@ -15,33 +16,85 @@ import {
   TableContainer,
   Table,
   TableHead,
+  Paper,
+  Modal,  
+  Grid,
   TableRow,
   MenuItem,
   TableCell,
   TableBody,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { makeStyles } from "@material-ui/core/styles";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import Web3 from "web3";
 import Link from 'next/link';
+import Header from "./appbar";
 import useMifiApi from "./hooks/useMifiApi";
 
 const StyledLink = styled(Link)`
   text-decoration: none;
 `;
+const useStyles = makeStyles((theme) => ({
+  logo: {
+    flexGrow: 1,
+  },
+  section: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing(2),
+    margin: theme.spacing(2),
+    border: `1px solid ${theme.palette.primary.main}`,
+    borderRadius: theme.shape.borderRadius,
+    [theme.breakpoints.up("md")]: {
+      flexDirection: "row",
+    },
+  },
+  sectionTitle: {
+    marginBottom: theme.spacing(2),
+    [theme.breakpoints.up("md")]: {
+      marginRight: theme.spacing(2),
+      marginBottom: 0,
+    },
+  },
+  paper: {
+    position: 'absolute',
+    width: 400,
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+  },
+  button: {
+    marginTop: theme.spacing(2),
+  },
+}));
 
 const GroupLenders = (props) => {
+  const classes = useStyles();
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [joiningAmount, setJoiningAmount] = useState(0);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [allVaults, setAllVaults] = useState([]);
   const { web3, account, contract } = useMifiApi();
   const [contribution, setContribution] = useState([]);
   const [allLoans, setAllLoans] = useState();
-  const [refresh,setRefresh]= useState(false);
+  const [staker, setStaker] = useState([]);
+  const [amount, setAmount] = useState('');
+  const [convertedAmount, setConvertedAmount] = useState('');
+  const [conversionDirection, setConversionDirection] = useState('ETH_TO_BDT');
+  const conversionRate = 193207.53; // 1 ETH = 193207.53 BDT (use a service/API to fetch this dynamically)
+  const [open, setOpen] = useState(false);
+  
   
   useEffect(() => {
     getAllLoans();
   }, [contract]);
+  
 
   const getAllLoans = async () => {
     try {
@@ -56,8 +109,81 @@ const GroupLenders = (props) => {
       console.log(error);
     }
   };
+  useEffect(() => {
+    const getStakerInfo = async () => {
+      try {
+        console.log(contract);
+        if (contract) {
+          const staker = await contract.methods
+            .address_staker(account[0])
+            .call({ from: account[0] });
+          setStaker(staker);
+          console.log("staker: ", staker);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getStakerInfo();
+  }, [contract]);
+  const addStakingBalance = async (type, value) => {
+    const weiAmount = Web3.utils.toWei("1", "ether");
+    try {
+      console.log(contract);
+      if (contract) {
+        const balance = await contract.methods
+          .add_balance(type)
+          .send({ from: account[0], value: weiAmount });
+          setStaker(
+            await contract.methods
+              .address_staker(account[0])
+              .call({ from: account[0] })
+          );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
+  const becomeStaker = async () => {
+    try {
+      console.log(contract);
+      if (contract) {
+        const response = await contract.methods
+          .become_staker(true)
+          .send({ from: account[0] });
+        setStaker(
+          await contract.methods
+            .address_staker(account[0])
+            .call({ from: account[0] })
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleAmountChange = (event) => {
+    setAmount(event.target.value);
+    if (conversionDirection === 'ETH_TO_BDT') {
+      setConvertedAmount(event.target.value * conversionRate);
+    } else {
+      setConvertedAmount(event.target.value / conversionRate);
+    }
+  };
+  const handleConversion = () => {
+    console.log(
+      `Converted ${amount} ${conversionDirection === 'ETH_TO_BDT' ? 'ETH' : 'BDT'} to ${
+        convertedAmount
+      } ${conversionDirection === 'ETH_TO_BDT' ? 'BDT' : 'ETH'}`
+    );
+    handleClose();
+  };
 
+  const handleSwap = () => {
+    setConversionDirection(conversionDirection === 'ETH_TO_BDT' ? 'BDT_TO_ETH' : 'ETH_TO_BDT');
+    setAmount('');
+    setConvertedAmount('');
+  };
   const approveLoan = async (loanId, vaultType) => {
     try {
       if (contract) {
@@ -94,6 +220,12 @@ const GroupLenders = (props) => {
         return "Approved";
       }
     }
+    const handleOpen = () => {
+      setOpen(true);
+    };
+    const handleClose = () => {
+      setOpen(false);
+    };
 
   const handleJoinDialogOpen = (group) => {
     setSelectedGroup(group);
@@ -167,6 +299,47 @@ const GroupLenders = (props) => {
   }
   return (
     <>
+     <Header />
+     {!parseInt(staker.balance) && <Button onClick={becomeStaker} variant="contained" color="success">
+        Become a Staker
+      </Button>}
+      <Button
+        onClick={() => addStakingBalance("staker")}
+        variant="contained"
+        color="success"
+      >
+        Add Staking Balance
+      </Button>
+      <Button onClick={addStakingBalance} variant="contained" color="success">
+        Convert Balance to Staking Balance
+      </Button>
+      <Button variant="contained" color="primary" onClick={handleOpen}>
+        Convert
+      </Button>
+      <Box className={classes.section}>
+          <Typography
+            variant="h6"
+            component="h3"
+            className={classes.sectionTitle}
+          >
+            Total Staking Balance: {staker.balance}
+          </Typography>
+          <Typography
+            variant="h6"
+            component="h3"
+            className={classes.sectionTitle}
+          >
+            Total Earned: 2,500
+          </Typography>
+          <Typography
+            variant="h6"
+            component="h3"
+            className={classes.sectionTitle}
+          >
+            NID Verified:{" "}
+            <CheckCircleRoundedIcon color="success" sx={{ fontSize: 25 }} />
+          </Typography>
+        </Box>  
       <TableContainer>
         <Table>
           <TableHead>
@@ -204,8 +377,8 @@ const GroupLenders = (props) => {
           <TableBody>
             {allLoans?.map((group, index) => (
               <TableRow key={index}>
-                <TableCell sx={{ minWidth: 50 }}  align="center">{index + 1}</TableCell>
-                <TableCell sx={{ minWidth: 50 }}  align="center">{group.vault_id}</TableCell>
+                <TableCell sx={{ minWidth: 30 }}  align="center">{index + 1}</TableCell>
+                <TableCell sx={{ minWidth: 30 }}  align="center">{group.vault_id}</TableCell>
                 <TableCell   align="center">{group.amount}</TableCell>
                 <TableCell>
                   <Button
@@ -314,6 +487,48 @@ const GroupLenders = (props) => {
           <Button onClick={handleDetailsDialogClose}>Close</Button>
         </DialogActions>
       </Dialog>
+      <div>
+   
+      <Modal open={open} onClose={handleClose}>
+        <Paper className={classes.paper}>
+          <h2 id="conversion-modal-title">
+            Convert {conversionDirection === 'ETH_TO_BDT' ? 'ETH to BDT' : 'BDT to ETH'}
+          </h2>
+          <Button color="primary" onClick={handleSwap}>
+            {conversionDirection === 'ETH_TO_BDT' ? 'Swap to BDT to ETH' : 'Swap to ETH to BDT'}
+          </Button>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label={conversionDirection === 'ETH_TO_BDT' ? 'ETH Amount' : 'BDT Amount'}
+                value={amount}
+                onChange={handleAmountChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label={conversionDirection === 'ETH_TO_BDT' ? 'BDT Amount' : 'ETH Amount'}
+                value={convertedAmount}
+                disabled
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleConversion}
+                className={classes.button}
+                fullWidth
+              >
+                Confirm
+              </Button>
+              </Grid>
+          </Grid>
+        </Paper>
+      </Modal>
+    </div>
     </>
   )
 }

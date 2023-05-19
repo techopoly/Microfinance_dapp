@@ -23,7 +23,7 @@ import {
 import { red } from "@material-ui/core/colors";
 import { Modal, Paper, Grid } from "@material-ui/core";
 import { styled } from "@mui/material/styles";
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from "@material-ui/core/styles";
 import Link from "next/link";
 import useMifiApi from "./hooks/useMifiApi";
 import AppBar from "./appbar";
@@ -32,22 +32,22 @@ const StyledLink = styled(Link)`
   text-decoration: none;
 `;
 const useStyles = makeStyles((theme) => ({
-    logo: {
-      flexGrow: 1,
-    },
-    paper: {
-      position: 'absolute',
-      width: 400,
-      backgroundColor: theme.palette.background.paper,
-      boxShadow: theme.shadows[5],
-      padding: theme.spacing(2, 4, 3),
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-    },
-  }));
+  logo: {
+    flexGrow: 1,
+  },
+  paper: {
+    position: "absolute",
+    width: 400,
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+  },
+}));
 
-  const yellowishColor = "#FFD700";
+const yellowishColor = "#FFD700";
 const GroupLenders = (props) => {
   const classes = useStyles();
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
@@ -60,10 +60,9 @@ const GroupLenders = (props) => {
   const [allLoans, setAllLoans] = useState();
   const [refresh, setRefresh] = useState(false);
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState("");
   const [loanId, setLoanId] = useState();
   const [vaultType, setVaultType] = useState();
-  
 
   useEffect(() => {
     getAllLoans();
@@ -82,7 +81,6 @@ const GroupLenders = (props) => {
       console.log(error);
     }
   };
-
 
   const installmentRepayment = async (loanId, vaultType) => {
     try {
@@ -142,8 +140,6 @@ const GroupLenders = (props) => {
     fontWeight: "bold",
   });
 
- 
-
   const secondToDays = (second) => {
     return second / 86400;
   };
@@ -186,20 +182,22 @@ const GroupLenders = (props) => {
         </Button>
       );
     } else {
-      <Button variant="contained" color="success">
-        Staked
-      </Button>;
+      return (
+        <Button variant="contained" color="success">
+          Staked
+        </Button>
+      );
     }
   };
 
   const handleOpen = (group, loanId) => {
     setOpen(true);
-    console.log(loanId, group.vault_type)
+    console.log(loanId, group.vault_type);
     setAmount(group.each_installment_amount);
     setLoanId(loanId);
     setVaultType(group.vault_type);
 
-    console.log('open Status: ', open);
+    console.log("open Status: ", open);
   };
 
   const handleClose = () => {
@@ -211,8 +209,8 @@ const GroupLenders = (props) => {
     setAmount(event.target.value);
   };
   const handleConfirm = () => {
-    console.log(`Confirmed adding balance of ${amount}`);
-    installmentRepayment(amount);
+    console.log(loanId, vaultType);
+    installmentRepayment(loanId, vaultType);
     handleClose();
   };
 
@@ -308,7 +306,7 @@ const GroupLenders = (props) => {
                 <TableCell>{createStakingStatusButton(group.staker)}</TableCell>
                 <TableCell align="center">
                   <Button
-                    onClick={()=>handleOpen(group, index+1)}
+                    onClick={() => handleOpen(group, index + 1)}
                     variant="contained"
                     style={{ backgroundColor: yellowishColor, color: "white" }}
                   >
