@@ -40,7 +40,6 @@ export default function GroupVault() {
     event.preventDefault();
     initiateGroupVault(interestRate);
     setIsDialogOpen(false);
-    // Perform further actions with form data
   };
 
   const initiateGroupVault = async (interestRate) => {

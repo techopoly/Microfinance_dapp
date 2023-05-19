@@ -19,16 +19,37 @@ import {
   MenuItem,
   TableCell,
   TableBody,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import Link from 'next/link';
+} from "@mui/material";
+import { red } from "@material-ui/core/colors";
+import { Modal, Paper, Grid } from "@material-ui/core";
+import { styled } from "@mui/material/styles";
+import { makeStyles } from '@material-ui/core/styles';
+import Link from "next/link";
 import useMifiApi from "./hooks/useMifiApi";
+import AppBar from "./appbar";
 
 const StyledLink = styled(Link)`
   text-decoration: none;
 `;
+const useStyles = makeStyles((theme) => ({
+    logo: {
+      flexGrow: 1,
+    },
+    paper: {
+      position: 'absolute',
+      width: 400,
+      backgroundColor: theme.palette.background.paper,
+      boxShadow: theme.shadows[5],
+      padding: theme.spacing(2, 4, 3),
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+    },
+  }));
 
+  const yellowishColor = "#FFD700";
 const GroupLenders = (props) => {
+  const classes = useStyles();
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [joiningAmount, setJoiningAmount] = useState(0);
@@ -37,8 +58,13 @@ const GroupLenders = (props) => {
   const { web3, account, contract } = useMifiApi();
   const [contribution, setContribution] = useState([]);
   const [allLoans, setAllLoans] = useState();
-  const [refresh,setRefresh]= useState(false);
+  const [refresh, setRefresh] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [loanId, setLoanId] = useState();
+  const [vaultType, setVaultType] = useState();
   
+
   useEffect(() => {
     getAllLoans();
   }, [contract]);
@@ -58,26 +84,12 @@ const GroupLenders = (props) => {
   };
 
 
-  const approveLoan = async (loanId, vaultType) => {
+  const installmentRepayment = async (loanId, vaultType) => {
     try {
       if (contract) {
         const response = await contract.methods
-          .approve_loan(loanId, vaultType)
-          .send({ from: account[0] });
-        console.log("response: ", response);
-        getAllLoans();
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const stake = async (loanId) => {
-    try {
-      if (contract) {
-        const response = await contract.methods
-          .stake(loanId)
-          .send({ from: account[0] });
+          .individual_installment_repay_wtih_interest(loanId, vaultType)
+          .send({ from: account[0], value: amount });
         console.log("response: ", response);
         getAllLoans();
       }
@@ -87,13 +99,13 @@ const GroupLenders = (props) => {
   };
 
   const getStatus = (status) => {
-      if (status == 0) {
-        return "Pending";
-      }
-      if (status == 1) {
-        return "Approved";
-      }
+    if (status == 0) {
+      return "Pending";
     }
+    if (status == 1) {
+      return "Approved";
+    }
+  };
 
   const handleJoinDialogOpen = (group) => {
     setSelectedGroup(group);
@@ -130,14 +142,11 @@ const GroupLenders = (props) => {
     fontWeight: "bold",
   });
 
-  const handleStatusChange = async(loanId, loanType) => {
-   console.log('loanId: ', loanId); 
-   approveLoan(loanId, loanType);
-    }
+ 
 
-    const secondToDays =(second)=>{
-      return second/86400;
-    }
+  const secondToDays = (second) => {
+    return second / 86400;
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -162,11 +171,56 @@ const GroupLenders = (props) => {
     const milliseconds = timestamp * 1000; // Convert to milliseconds
     const date = new Date(milliseconds);
     const dateString = date.toDateString(); // Get the date string
-  
+
     return dateString;
   }
+
+  const createStakingStatusButton = (staker) => {
+    if (staker === "0x0000000000000000000000000000000000000000") {
+      return (
+        <Button
+          variant="contained"
+          style={{ backgroundColor: red[500], color: "white" }}
+        >
+          Not Staked
+        </Button>
+      );
+    } else {
+      <Button variant="contained" color="success">
+        Staked
+      </Button>;
+    }
+  };
+
+  const handleOpen = (group, loanId) => {
+    setOpen(true);
+    console.log(loanId, group.vault_type)
+    setAmount(group.each_installment_amount);
+    setLoanId(loanId);
+    setVaultType(group.vault_type);
+
+    console.log('open Status: ', open);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setAmount("");
+  };
+
+  const handleAmountChange = (event) => {
+    setAmount(event.target.value);
+  };
+  const handleConfirm = () => {
+    console.log(`Confirmed adding balance of ${amount}`);
+    installmentRepayment(amount);
+    handleClose();
+  };
+
   return (
     <>
+      <AppBar />
+      <hr></hr>
+      <hr></hr>
       <TableContainer>
         <Table>
           <TableHead>
@@ -196,37 +250,49 @@ const GroupLenders = (props) => {
                 Status
               </BoldTableCell>
               <BoldTableCell align="center" variant="head">
-                Stake
+                Staking Status
               </BoldTableCell>
-
+              <BoldTableCell align="center" variant="head">
+                Pay Installment
+              </BoldTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {allLoans?.map((group, index) => (
               <TableRow key={index}>
-                <TableCell sx={{ minWidth: 50 }}  align="center">{index + 1}</TableCell>
-                <TableCell sx={{ minWidth: 50 }}  align="center">{group.vault_id}</TableCell>
-                <TableCell   align="center">{group.amount}</TableCell>
+                <TableCell sx={{ minWidth: 30 }} align="center">
+                  {index + 1}
+                </TableCell>
+                <TableCell sx={{ minWidth: 30 }} align="center">
+                  {group.vault_id}
+                </TableCell>
+                <TableCell align="center">{group.amount}</TableCell>
                 <TableCell>
                   <Button
-                  color="secondary"
+                    color="secondary"
                     onClick={() => profile(group.borrower)}
                     variant="outlined"
                   >
-                    {group.borrower.substring(0,6) + '...' + group.borrower.substring(11,15)}
+                    {group.borrower.substring(0, 6) +
+                      "..." +
+                      group.borrower.substring(11, 15)}
                   </Button>
                 </TableCell>
                 <TableCell>
                   <Button
-                  color="secondary"
+                    color="secondary"
                     onClick={() => profile(group.staker)}
                     variant="outlined"
                   >
-                    {group.staker.substring(0,6) + '...' + group.staker.substring(11,15)}
+                    {group.staker.substring(0, 6) +
+                      "..." +
+                      group.staker.substring(11, 15)}
                   </Button>
                 </TableCell>
-                <TableCell  align="center">{convertTimestampToDateString(group.start_date)}</TableCell>
-                <TableCell  align="center">
+                <TableCell align="center">
+                  {convertTimestampToDateString(group.start_date)}
+                </TableCell>
+                <TableCell align="center">
                   <Button
                     onClick={() => handleDetailsDialogOpen(group)}
                     variant="contained"
@@ -235,13 +301,20 @@ const GroupLenders = (props) => {
                   </Button>
                 </TableCell>
                 <TableCell>
-                <Typography color="warning.main" >{getStatus(group.status)}</Typography>
+                  <Typography color="warning.main">
+                    {getStatus(group.status)}
+                  </Typography>
                 </TableCell>
-                <TableCell>
-                    <Button variant="contained" color="success" onClick={()=>stake(index+1)}>
-                      Stake
-                    </Button>
-                  </TableCell>
+                <TableCell>{createStakingStatusButton(group.staker)}</TableCell>
+                <TableCell align="center">
+                  <Button
+                    onClick={()=>handleOpen(group, index+1)}
+                    variant="contained"
+                    style={{ backgroundColor: yellowishColor, color: "white" }}
+                  >
+                    Pay
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -265,20 +338,21 @@ const GroupLenders = (props) => {
           <Button onClick={handleJoinConfirm}>Join</Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={detailsDialogOpen} onClose={handleDetailsDialogClose} 
-      
-      aria-labelledby="customized-dialog-title"
-      fullWidth // Make dialog take full width
-      maxWidth={'md'} // Define max width, can take 'sm', 'md', 'lg', 'xl', 'false'
-      PaperProps={{ style: { width: '80%' } }} // Specify custom width percentage here
+      <Dialog
+        open={detailsDialogOpen}
+        onClose={handleDetailsDialogClose}
+        aria-labelledby="customized-dialog-title"
+        fullWidth // Make dialog take full width
+        maxWidth={"md"} // Define max width, can take 'sm', 'md', 'lg', 'xl', 'false'
+        PaperProps={{ style: { width: "80%" } }} // Specify custom width percentage here
       >
         <DialogTitle>Details</DialogTitle>
         <DialogContent>
-          <TableContainer >
+          <TableContainer>
             <Table>
-              <TableHead >
+              <TableHead>
                 <TableRow>
-                <BoldTableCell align="center" variant="head" >
+                  <BoldTableCell align="center" variant="head">
                     Total Installments
                   </BoldTableCell>
                   <BoldTableCell align="center" variant="head">
@@ -287,25 +361,37 @@ const GroupLenders = (props) => {
                   <BoldTableCell align="center" variant="head">
                     Each Term
                   </BoldTableCell>
-                  <BoldTableCell align="center" variant="head" sx={{ minWidth: 200 }}>
+                  <BoldTableCell
+                    align="center"
+                    variant="head"
+                    sx={{ minWidth: 200 }}
+                  >
                     Next Term Due Date
                   </BoldTableCell>
 
                   <BoldTableCell align="center" variant="head">
-                     Installments Completed
+                    Installments Completed
                   </BoldTableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                  <TableRow >
-                    <TableCell align="center">{contribution.no_of_installments}</TableCell>
-                    <TableCell align="center">{contribution.each_installment_amount}</TableCell>
-                    <TableCell align="center">{secondToDays(contribution.each_term)}</TableCell>
-                    <TableCell align="center">{contribution.next_term_due_date}</TableCell>
-                    <TableCell align="center">{contribution.no_of_installments_done}</TableCell>
-
-                  </TableRow>
-           
+                <TableRow>
+                  <TableCell align="center">
+                    {contribution.no_of_installments}
+                  </TableCell>
+                  <TableCell align="center">
+                    {contribution.each_installment_amount}
+                  </TableCell>
+                  <TableCell align="center">
+                    {secondToDays(contribution.each_term)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {contribution.next_term_due_date}
+                  </TableCell>
+                  <TableCell align="center">
+                    {contribution.no_of_installments_done}
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
@@ -314,12 +400,38 @@ const GroupLenders = (props) => {
           <Button onClick={handleDetailsDialogClose}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <div>
+        <Modal open={open} onClose={handleClose}>
+          <Paper className={classes.paper}>
+            <h2 id="conversion-modal-title">Installment Amount</h2>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  type="number"
+                  label="Enter Amount"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleConfirm}
+                  className={classes.button}
+                  fullWidth
+                >
+                  Confirm
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Modal>
+      </div>
     </>
-  )
-}
-
-
+  );
+};
 
 export default GroupLenders;
-
-

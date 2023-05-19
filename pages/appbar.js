@@ -144,10 +144,6 @@ const handleConfirm = () => {
           MicroLoan
         </Typography>
         <nav style={{ display: 'flex', alignItems: 'center' }}>
-          <Button color="inherit">My Website</Button>
-          <Button color="inherit">About Us</Button>
-          <Button color="inherit">Apply for Loan</Button>
-          <Button color="inherit">FAQ</Button>
           <Button color="inherit" onClick={() => handleOptionClick("verify")}>
             Verify
           </Button>
