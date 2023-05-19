@@ -14,99 +14,6 @@ import useMifiApi from "./hooks/useMifiApi";
 const LogoTypography = styled(Typography)({
     flexGrow: 1,
   });
-const availableLoans = [
-    {
-        id: 1,
-        vaultOwnerID: 'abcd1234',
-        totalSupply: 100000,
-        remainingSupply: 80000,
-        interestRate: 5,
-        interestEarned: 4000,
-        creationDate: '2022-03-01',
-      },
-      {
-        id: 2,
-        vaultOwnerID: 'efgh5678',
-        totalSupply: 50000,
-        remainingSupply: 25000,
-        interestRate: 7,
-        interestEarned: 1750,
-        creationDate: '2022-04-15',
-      },
-      {
-        id: 3,
-        vaultOwnerID: 'ijkl9012',
-        totalSupply: 75000,
-        remainingSupply: 50000,
-        interestRate: 6,
-        interestEarned: 3000,
-        creationDate: '2022-05-03',
-      },
-      {
-        id: 4,
-        vaultOwnerID: 'mnop3456',
-        totalSupply: 120000,
-        remainingSupply: 80000,
-        interestRate: 4.5,
-        interestEarned: 3600,
-        creationDate: '2022-06-17',
-      },
-      {
-        id: 5,
-        vaultOwnerID: 'qrst7890',
-        totalSupply: 90000,
-        remainingSupply: 70000,
-        interestRate: 8,
-        interestEarned: 5600,
-        creationDate: '2022-07-05',
-      },
-      {
-        id: 6,
-        vaultOwnerID: 'uvwxy2345',
-        totalSupply: 60000,
-        remainingSupply: 45000,
-        interestRate: 6.5,
-        interestEarned: 1950,
-        creationDate: '2022-08-21',
-      },
-      {
-        id: 7,
-        vaultOwnerID: 'zabcd6789',
-        totalSupply: 80000,
-        remainingSupply: 50000,
-        interestRate: 5.5,
-        interestEarned: 2750,
-        creationDate: '2022-09-11',
-      },
-      {
-        id: 8,
-        vaultOwnerID: 'efghi1234',
-        totalSupply: 150000,
-        remainingSupply: 100000,
-        interestRate: 4,
-        interestEarned: 4000,
-        creationDate: '2022-10-08',
-      },
-      {
-        id: 9,
-        vaultOwnerID: 'jklmn5678',
-        totalSupply: 200000,
-        remainingSupply: 125000,
-        interestRate: 6.25,
-        interestEarned: 7812.5,
-        creationDate: '2022-11-25',
-      },
-      {
-        id: 10,
-        vaultOwnerID: 'opqrs9012',
-        totalSupply: 180000,
-        remainingSupply: 150000,
-        interestRate: 3.5,
-        interestEarned: 5250,
-        creationDate: '2022-12-31',
-      },
-  // Add more loans here
-];
 
 export default function BorrowerPage() {
   const [open, setOpen] = useState(false);
@@ -116,12 +23,15 @@ export default function BorrowerPage() {
   const [eachTerm, setEachTerm] = useState(30);
   const { web3, account, contract } = useMifiApi();
   const [allVaults, setAllVaults] = useState([]);
+  const [vaultId, setVaultId] = useState();
 
-  const handleClickOpen = () => {
+  const handleClickOpen = (vault_id) => {
+    setVaultId(vault_id);
     setOpen(true);
   };
 
   const handleClose = () => {
+    individualBorrow();
     setOpen(false);
   };
 
@@ -151,10 +61,7 @@ export default function BorrowerPage() {
             .call({ from: account[0] });
           console.log("vaults: ", vaults);
           setAllVaults(vaults);
-          const response = await contract.methods
-            .vaultId_vault(2)
-            .call({ from: account[0] });
-          console.log("vault:1 ", response);
+          getAllLoans();
         }
       } catch (error) {
         console.log(error);
@@ -162,10 +69,36 @@ export default function BorrowerPage() {
     };
     getAllVaults();
   }, [contract]);
+
+  const getAllLoans = async () => {
+    try {
+      if (contract) {
+        const allLoans = await contract.methods
+          .show_all_loan()
+          .call({ from: account[0]});
+        console.log("allLoans: ", allLoans);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const individualBorrow = async () => {
+    const eachTermInSecond = eachTerm*86400;
+    try {
+      if (contract) {
+        const response = await contract.methods
+          .individual_borrow(vaultId, "individual", amount, eachInstallmentAmount, installments, eachTermInSecond)
+          .send({ from: account[0]});
+        console.log("response: ", response);
+        getAllLoans();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
-    
-
     <div>
         <Header/>
     </div>
@@ -190,7 +123,7 @@ export default function BorrowerPage() {
           </TableHead>
           <TableBody>
             {allVaults.map((data) => (
-              <TableRow key={data.id}>
+              <TableRow key={data.vault_id}>
                 <TableCell component="th" scope="row">
                   {data.vault_id}
                 </TableCell>
@@ -200,7 +133,7 @@ export default function BorrowerPage() {
                 <TableCell align="right">{data.interest_earned}</TableCell>
                 <TableCell align="right">{data.creation_date}</TableCell>
                 <TableCell align="right">
-                  <Button variant="contained" color="primary" onClick={handleClickOpen}>
+                  <Button variant="contained" color="primary" onClick={()=>handleClickOpen(data.vault_id)}>
                     Borrow
                   </Button>
                 </TableCell>

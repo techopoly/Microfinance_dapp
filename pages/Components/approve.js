@@ -1,133 +1,84 @@
-import { useState } from 'react';
-import { styled } from '@mui/material/styles';
+import React, { useState } from "react";
+import Testgroup from './approveTest';
+import useMifiApi from "../hooks/useMifiApi";
+
 import {
+  Card,
+  CardContent,
+  CardMedia,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  FormControl,
-  Select,
-  MenuItem,
-} from '@mui/material';
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+} from "@mui/material";
 
-const StyledTable = styled(Table)({
-  minWidth: 650,
-});
+export default function GroupVault() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [interestRate, setInterestRate] = useState("");
+  const {web3, account, contract} = useMifiApi();
+  const [refresh, setRefresh] = useState(true);
 
-const ApproveBorrowers = () => {
-  const [borrowers, setBorrowers] = useState([
-    {
-      id: 1,
-      vaultId: 101,
-      borrowerId: 1,
-      amount: 5000,
-      interestRate: 5,
-      creationDate: '2022-03-20',
-      status: 'pending',
-    },
-    {
-      id: 2,
-      vaultId: 102,
-      borrowerId: 2,
-      amount: 10000,
-      interestRate: 6,
-      creationDate: '2022-03-25',
-      status: 'approved',
-    },
-    {
-      id: 3,
-      vaultId: 103,
-      borrowerId: 3,
-      amount: 7000,
-      interestRate: 4,
-      creationDate: '2022-04-01',
-      status: 'denied',
-    },
-    {
-      id: 4,
-      vaultId: 104,
-      borrowerId: 4,
-      amount: 8000,
-      interestRate: 5,
-      creationDate: '2022-04-05',
-      status: 'pending',
-    },
-  ]);
+  const handleDialogOpen = () => {
+    setIsDialogOpen(true);
+  };
 
-  const handleStatusChange = (event, id) => {
-    const updatedBorrowers = borrowers.map((borrower) => {
-      if (borrower.id === id) {
-        return { ...borrower, status: event.target.value };
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setInterestRate("");
+  };
+
+
+  const handleInterestRateChange = (event) => {
+    setInterestRate(event.target.value);
+  };
+
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    initiateGroupVault(interestRate);
+    setIsDialogOpen(false);
+    // Perform further actions with form data
+  };
+
+  const initiateGroupVault = async (interestRate) => {
+    try {
+      if (contract) {
+        const response = await contract.methods
+          .initiate_group_vault(interestRate)
+          .send({ from: account[0]});
+          console.log('response: ', response);
+         const vaults = await contract.methods
+         .show_all_group_vault()
+         .call({ from: account[0]});
+         setRefresh(!refresh);
+         console.log('all Vaults: ', vaults);
       }
-      return borrower;
-    });
-    setBorrowers(updatedBorrowers);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <div style={{ width: '80%' }}>
-        <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ fontWeight: 'bold' }}>
-          Borrower Approval Panel
-        </Typography>
-        <TableContainer component={Paper}>
-          <StyledTable>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Vault ID</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Borrower ID</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Interest Rate</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Creation Date</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {borrowers.map((borrower) => (
-                <TableRow key={borrower.id}>
-                  <TableCell>{borrower.vaultId}</TableCell>
-                  <TableCell>{borrower.borrowerId}</TableCell>
-                  <TableCell>{borrower.amount}</TableCell>
-                  <TableCell>{borrower.interestRate}%</TableCell>
-                  <TableCell>{borrower.creationDate}</TableCell>
-                  <TableCell>
-                    <FormControl sx={{ minWidth: 120 }}>
-                      <Select
-                        value={borrower.status}
-                        onChange={(e) => handleStatusChange(e, borrower.id)}
-                        sx={
-                          borrower.status === 'pending'
-                            ? { color: 'warning.main', fontWeight: 'bold' }
-                            : borrower.status ===  'approved'
-                            ? { color: 'success.main', fontWeight: 'bold' }
-                            : { color: 'error.main', fontWeight: 'bold' }
-                        }
-                      >
-                        <MenuItem value="pending" sx={{ color: 'warning.main' }}>
-                          Pending
-                        </MenuItem>
-                        <MenuItem value="approved" sx={{ color: 'success.main' }}>
-                          Approved
-                        </MenuItem>
-                        <MenuItem value="denied" sx={{ color: 'error.main' }}>
-                          Denied
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </StyledTable>
-        </TableContainer>
-      </div>
-    </div>
-    
-    );
-};
+    <div>
+      <Card sx={{ maxWidth: "100%" }} >
+        <CardMedia
+          component="img"
+          alt="Group Vault"
+          height="250"
+          image="https://symbl.ai/wp-content/uploads/2023/01/loan-process.png"
+          title="Group Vault"
+        />
+        <CardContent sx={{ justifyContent: 'center' }}>
+          <Typography gutterBottom variant="h5" component="div">
+            Loan Approval Panel
+          </Typography>
+        </CardContent>
+      </Card>
 
-export default ApproveBorrowers;
+  <Testgroup props={refresh}/>
+</div>
+);
+}

@@ -4,6 +4,7 @@ import {
   CardContent,
   Typography,
   CardMedia,
+  Select,
   Button,
   Dialog,
   DialogTitle,
@@ -14,6 +15,7 @@ import {
   Table,
   TableHead,
   TableRow,
+  MenuItem,
   TableCell,
   TableBody,
 } from '@mui/material';
@@ -189,14 +191,18 @@ const dummyData = [
 // };
 
 
-const GroupLenders = () => {
+const GroupLenders = (props) => {
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [joiningAmount, setJoiningAmount] = useState(0);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [allVauts, setAllVaults] = useState([]);
+  const [allVaults, setAllVaults] = useState([]);
   const { web3, account, contract } = useMifiApi();
   const [contribution, setContribution] = useState([]);
+  const [vaults, setVaults] = useState();
+  const [refresh,setRefresh]= useState(false);
+  
+
 
   useEffect(() => {
     const getAllVaults = async () => {
@@ -213,7 +219,7 @@ const GroupLenders = () => {
       }
     };
     getAllVaults();
-  }, [contract]);
+  }, [contract,vaults,props.props]);
 
   const showContribution = async (vault_id) => {
     try {
@@ -284,6 +290,38 @@ const GroupLenders = () => {
   const BoldTableCell = styled(TableCell)({
     fontWeight: "bold",
   });
+
+  const handleStatusChange = async(GroupId) => {
+    console.log(GroupId)
+
+      const response = await contract.methods
+        .approve_vault(GroupId, "group")
+        .send({ from: account[0] });
+      console.log("Response: ", response);
+      const groupVault = await contract.methods
+        .vaultId_vault(GroupId)
+        .call({ from: account[0] });
+      console.log("Group: ", groupVault);
+    
+    setVaults(
+      allVaults.map((vault) =>
+        vault.id === GroupId ? { ...vault, status: newStatus } : vault
+      )
+    );
+    }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "yellow";
+      case "Approved":
+        return "green";
+      case "Denied":
+        return "red";
+      default:
+        return "";
+    }
+  };
   return (
     <>
       <TableContainer>
@@ -308,13 +346,14 @@ const GroupLenders = () => {
               <BoldTableCell align="center" variant="head">
                 Status
               </BoldTableCell>
+
             </TableRow>
           </TableHead>
           <TableBody>
-            {allVauts.map((group) => (
+            {allVaults.map((group) => (
               <TableRow key={group.vault_id}>
-                <TableCell align="center">{group.vault_id}</TableCell>
-                <TableCell align="center">
+                <TableCell sx={{ minWidth: 200 }}  align="center">{group.vault_id}</TableCell>
+                <TableCell sx={{ minWidth: 200 }} align="center">
                   <Button
                     onClick={() => handleDetailsDialogOpen(group)}
                     variant="outlined"
@@ -322,16 +361,28 @@ const GroupLenders = () => {
                     Details
                   </Button>
                 </TableCell>
-                <TableCell align="center">{group.total_supply}</TableCell>
-                <TableCell align="center">{group.interest_rate}%</TableCell>
-                <TableCell align="center">{group.creation_date}</TableCell>
-                <TableCell align="center">
-                  <Button
-                    onClick={() => handleJoinDialogOpen(group)}
-                    variant="contained"
+                <TableCell sx={{ minWidth: 200 }}  align="center">{group.total_supply}</TableCell>
+                <TableCell sx={{ minWidth: 200 }} align="center">{group.interest_rate}%</TableCell>
+                <TableCell sx={{ minWidth: 200 }} align="center">{group.creation_date}</TableCell>
+                <TableCell>
+                  <Select
+                  
+                  value={group.status}
+                    onChange={(e) =>
+                      handleStatusChange(group.vault_id, group.vault_owner)
+                    }
+                    sx={{ color: getStatusColor(group.status), marginLeft:"2.5rem"  }}
                   >
-                    Join
-                  </Button>
+                    <MenuItem value="0" id={group.vault_id}>
+                      <Typography color="warning.main">Pending</Typography>
+                    </MenuItem>
+                    <MenuItem value="1" id={group.vault_id}>
+                      <Typography color="success.main">Approved</Typography>
+                    </MenuItem>
+                    <MenuItem value="2" id={group.vault_id}>
+                      <Typography color="error.main">Denied</Typography>
+                    </MenuItem>
+                  </Select>
                 </TableCell>
               </TableRow>
             ))}

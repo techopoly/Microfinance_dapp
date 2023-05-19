@@ -19,6 +19,7 @@ export default function GroupVault() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [interestRate, setInterestRate] = useState("");
   const {web3, account, contract} = useMifiApi();
+  const [refresh, setRefresh] = useState(true);
 
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
@@ -27,7 +28,6 @@ export default function GroupVault() {
   const handleDialogClose = () => {
     setIsDialogOpen(false);
     setInterestRate("");
-    setCapacity("");
   };
 
 
@@ -53,6 +53,7 @@ export default function GroupVault() {
          const vaults = await contract.methods
          .show_all_group_vault()
          .call({ from: account[0]});
+         setRefresh(!refresh);
          console.log('all Vaults: ', vaults);
       }
     } catch (error) {
@@ -102,7 +103,7 @@ export default function GroupVault() {
       </DialogActions>
     </form>
   </Dialog>
-  <Testgroup/>
+  <Testgroup props={refresh}/>
 </div>
 );
 }

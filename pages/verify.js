@@ -22,6 +22,7 @@ import {
   InputAdornment,
   IconButton,
   Container,
+  CardMedia
   
 } from '@mui/material';
 
@@ -104,6 +105,13 @@ const VerificationPage = () => {
     <Container maxWidth="sm" style={{ paddingTop: '64px' }}>
       <Card className={classes.card}>
         <CardHeader title="Identification Verification" />
+        <CardMedia
+          component="img"
+          alt="Group Vault"
+          height="400"
+          image="https://play-lh.googleusercontent.com/3NwfLSSrAGui3B8c30fSISKZbOcHy4DSnGsoUSd1XTJsxytg8yPfHlEY2CQlfR328RQ"
+          title="Group Vault"
+        />
         <CardContent>
           <PhotoCamera className={classes.cardIcon} />
           <Typography variant="body1" style={{ marginTop: '16px' }}>
