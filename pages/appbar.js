@@ -153,7 +153,12 @@ const handleConfirm = () => {
           >
             Protocol Manager
           </Button>
- 
+          <Button
+            color="inherit"
+            onClick={() => handleOptionClick("userLoan")}
+          >
+            My Loans
+          </Button>
           <Button variant="outlined" color="inherit">
             {account ? "Connected" : "Connect Metamask"}
           </Button>
