@@ -136,7 +136,7 @@ export default function StakerPage() {
   const [conversionDirection, setConversionDirection] = useState('ETH_TO_BDT');
 
   const conversionRate = 193207.53; // 1 ETH = 193207.53 BDT (use a service/API to fetch this dynamically)
-  const [loans, setloans] = useState([]);
+  const [allLoans, setAllLonas] = useState([]);
   //////////////////////////////////////////////////////////
 
   useEffect(() => {
@@ -155,7 +155,22 @@ export default function StakerPage() {
       }
     };
     getStakerInfo();
+    getAllLoans();
   }, [contract]);
+
+  const getAllLoans = async () => {
+    try {
+      if (contract) {
+        const allLoans = await contract.methods
+          .show_all_loan()
+          .call({ from: account[0]});
+          setAllLonas(allLoans);
+        console.log("allLoans: ", allLoans);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const addStakingBalance = async (type, value) => {
     const weiAmount = Web3.utils.toWei("1", "ether");
@@ -221,26 +236,16 @@ const handleSwap = () => {
   setAmount('');
   setConvertedAmount('');
 };
+const getStatus = (status) => {
+  if (status == 0) {
+    return "Pending";
+  }
+  if (status == 1) {
+    return "Approved";
+  }
+};
 
 
-useEffect(() => {
-  const getAllVaults = async () => {
-    try {
-      console.log("Watch Hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-      console.log(contract);
-      if (contract) {
-        const fetchloans = await contract.methods
-          .show_all_loan()
-          .call({ from: account[0] });
-        console.log("vaults: ", vaults);
-        setloans(fetchloans);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  getAllVaults();
-}, [contract]);
 ///////////////////////////////////////////////////////////////
   return (
     <>
@@ -290,36 +295,36 @@ useEffect(() => {
           <Table>
             <TableHead>
               <TableRow>
+              <TableCell>Loan ID</TableCell>
                 <TableCell>Amount</TableCell>
-                <TableCell>Borrower Name</TableCell>
                 <TableCell>Borrower Address</TableCell>
-                <TableCell>Borrower Reputation Score</TableCell>
-                <TableCell>Interest Rate</TableCell>
+                {/* <TableCell>Borrower Reputation Score</TableCell>
+                <TableCell>Interest Rate</TableCell> */}
                 <TableCell>No. of Installments</TableCell>
-                <TableCell>No. Installments completed</TableCell>
-                <TableCell>Installment amount</TableCell>
+                <TableCell>No. Installments Completed</TableCell>
+                <TableCell>Each Installment Amount</TableCell>
                 <TableCell>Each Term</TableCell>
-                <TableCell>Creation Date</TableCell>
+                <TableCell>Start Date</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {stakingData.map((data) => (
-                <TableRow key={data.id}>
+              {allLoans.map((data, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
                   <TableCell>{data.amount}</TableCell>
-                  <TableCell>{data.borrower_name}</TableCell>
-                  <TableCell>{data.address}</TableCell>
-                  <TableCell>{data.borrower_reputation_score}</TableCell>
-                  <TableCell>{data.interest_rate}%</TableCell>
+                  <TableCell>{data.borrower.substring(0,5)+'...'+ data.borrower.substring(13)}</TableCell>
+                  {/* <TableCell>{data.borrower_reputation_score}</TableCell> */}
+                  {/* <TableCell>{data.interest_rate}%</TableCell> */}
                   <TableCell>{data.no_of_installments}</TableCell>
-                  <TableCell>{data.installments_completed}</TableCell>
+                  <TableCell>{data.no_of_installments_done}</TableCell>
                   <TableCell>{data.Installment_amount}</TableCell>
-                  <TableCell>{data.Each_term}</TableCell>
-                  <TableCell>{data.creation_date}</TableCell>
+                  <TableCell>{data.each_term}</TableCell>
+                  <TableCell>{data.start_date}</TableCell>
                   <TableCell>
                     <Button variant="contained" color="success">
-                      Approved
+                      {getStatus(data.status)}
                     </Button>
                   </TableCell>
                   <TableCell>
