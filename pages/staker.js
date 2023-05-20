@@ -149,7 +149,9 @@ const GroupLenders = (props) => {
   };
 
   const weiToEth = (weiValue) => {
-    return web3.utils.fromWei(weiValue, "ether");
+    console.log(weiValue)
+    const valueInString = weiValue.toString();
+    return Web3.utils.fromWei(valueInString, "ether");
   };
 
   const ethToBdt = (ethAmount) => {
@@ -340,14 +342,14 @@ const GroupLenders = (props) => {
           component="h3"
           className={classes.sectionTitle}
         >
-          Total Staking Balance: {ethToBdt(weiToEth(staker.balance))}
+          Total Staking Balance: {staker.balance ? ethToBdt(weiToEth(staker.balance)): 0}
         </Typography>
         <Typography
           variant="h6"
           component="h3"
           className={classes.sectionTitle}
         >
-          Total Earned: {ethToBdt(weiToEth(staker.reward))}
+          Total Earned: {staker.reward? ethToBdt(weiToEth(staker.reward)): 0}
         </Typography>
         <Typography
           variant="h6"
