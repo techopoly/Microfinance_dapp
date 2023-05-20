@@ -86,7 +86,7 @@ export default function Vaults() {
           component="img"
           alt="Individual Vault"
           height="400"
-          image="https://www.kotak.com/content/dam/Kotak/article-images/4-tips-to-get-the-best-personal-loan-interest-rates-desk.jpg"
+          image="/images/individual.png"
           title="Individual Vault"
         />
         <CardContent>

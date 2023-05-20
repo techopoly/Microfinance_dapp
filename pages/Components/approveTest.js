@@ -72,20 +72,6 @@ const GroupLenders = (props) => {
     }
   };
 
-  const stake = async (loanId) => {
-    try {
-      if (contract) {
-        const response = await contract.methods
-          .stake(loanId)
-          .send({ from: account[0] });
-        console.log("response: ", response);
-        getAllLoans();
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
 
   const handleJoinDialogOpen = (group) => {
     setSelectedGroup(group);
@@ -184,9 +170,7 @@ const GroupLenders = (props) => {
               <BoldTableCell align="center" variant="head">
                 Status
               </BoldTableCell>
-              <BoldTableCell align="center" variant="head">
-                Stake
-              </BoldTableCell>
+
 
             </TableRow>
           </TableHead>
@@ -242,11 +226,7 @@ const GroupLenders = (props) => {
                     </MenuItem>
                   </Select>
                 </TableCell>
-                <TableCell>
-                    <Button variant="contained" color="success" onClick={()=>stake(index+1)}>
-                      Stake
-                    </Button>
-                  </TableCell>
+     
               </TableRow>
             ))}
           </TableBody>

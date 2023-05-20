@@ -23,6 +23,8 @@ import { green, red, yellow } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import useMifiApi from "../hooks/useMifiApi";
 import vault from "../vaultmanagement";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 
 const vaultStatusColors = {
   approved: green[500],
@@ -42,6 +44,7 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
       .vaultId_vault(0)
       .call({ from: account[0] });
     console.log(response);
+    
   };
 
   const handleAmountChange = (e) => {
@@ -52,6 +55,7 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
   };
 
   return (
+    <>
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Create Vault</DialogTitle>
       <DialogContent>
@@ -81,6 +85,8 @@ const VaultFormDialog = ({ open, onClose, onSubmit }) => {
         </Button>
       </DialogActions>
     </Dialog>
+       
+        </>
   );
 };
 
@@ -97,7 +103,7 @@ const FullWidthCard = ({ onOpenDialog }) => {
       <CardMedia
         component="img"
         height="400"
-        image="https://www.kotak.com/content/dam/Kotak/article-images/4-tips-to-get-the-best-personal-loan-interest-rates-desk.jpg"
+        image="/images/individual.png"
         alt="Individual Lenders"
       />
       <CardContent>
@@ -198,6 +204,11 @@ const LendersTable = (props) => {
 const IndividualLendersPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [refresh, setRefresh] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const closebutton = () => {
+    setIsDialogOpen(false);
+  };
 
   const handleOpenDialog = () => {
     setDialogOpen(true);
@@ -220,7 +231,8 @@ const IndividualLendersPage = () => {
         //     .show_all_individual_vault()
         //     .call({ from: account[0]})
         // );
-        setRefresh(!refresh);        
+        setRefresh(!refresh);  
+        setIsDialogOpen(true);      
       }
     } catch (error) {
       console.log(error);
@@ -231,6 +243,7 @@ const IndividualLendersPage = () => {
   };
 
   return (
+    <>
     <div>
       <FullWidthCard onOpenDialog={handleOpenDialog} />      
       <LendersTable refresh={refresh}/>
@@ -240,6 +253,13 @@ const IndividualLendersPage = () => {
         onSubmit={handleConfirmDialog}
       />
     </div>
+       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+          <DialogTitle sx={{ fontSize: 30 }}>New Vault successfully Created<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+          <DialogActions>
+            <Button onClick={closebutton}>Close</Button>
+          </DialogActions>
+        </Dialog>
+        </>
   );
 };
 

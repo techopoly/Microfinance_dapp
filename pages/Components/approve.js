@@ -68,7 +68,7 @@ export default function GroupVault() {
           component="img"
           alt="Group Vault"
           height="250"
-          image="https://symbl.ai/wp-content/uploads/2023/01/loan-process.png"
+          image="/images/approve.png"
           title="Group Vault"
         />
         <CardContent sx={{ justifyContent: 'center' }}>

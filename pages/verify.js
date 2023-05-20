@@ -5,6 +5,7 @@ import useMifiApi from "./hooks/useMifiApi";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { green } from '@mui/material/colors';
 import Head from "./appbar"
+import Image from 'next/image';
 import {
   Card,
   CardHeader,
@@ -109,7 +110,7 @@ const VerificationPage = () => {
           component="img"
           alt="Group Vault"
           height="400"
-          image="https://play-lh.googleusercontent.com/3NwfLSSrAGui3B8c30fSISKZbOcHy4DSnGsoUSd1XTJsxytg8yPfHlEY2CQlfR328RQ"
+          image="/images/verify.png"
           title="Group Vault"
         />
         <CardContent>

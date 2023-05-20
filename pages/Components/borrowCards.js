@@ -34,12 +34,12 @@ const BorrowCards = () => {
     <div>
       <FullWidthCard
         title="Individual Borrowers"
-        imageSrc="https://www.kotak.com/content/dam/Kotak/article-images/4-tips-to-get-the-best-personal-loan-interest-rates-desk.jpg"
+        imageSrc="/images/individual.png"
         url="/individualBorrow"
       />
       <FullWidthCard
         title="Group Borrowers"
-        imageSrc="https://www.preferredbank.com/assets/files/MgcZzqlN/subad_businesssolutions.jpg"
+        imageSrc="/images/group.png"
         url="/groupBorrow"
       />
     </div>

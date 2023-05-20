@@ -10,6 +10,8 @@ import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Grid from '@material-ui/core/Grid';
 import useMifiApi from "./hooks/useMifiApi";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 ////////////////////////////////////////////////Take loan///////////////////////////////
 const LogoTypography = styled(Typography)({
     flexGrow: 1,
@@ -24,7 +26,11 @@ export default function BorrowerPage() {
   const { web3, account, contract } = useMifiApi();
   const [allVaults, setAllVaults] = useState([]);
   const [vaultId, setVaultId] = useState();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
   const handleClickOpen = (vault_id) => {
     setVaultId(vault_id);
     setOpen(true);
@@ -91,6 +97,7 @@ export default function BorrowerPage() {
           .send({ from: account[0]});
         console.log("response: ", response);
         getAllLoans();
+        setIsDialogOpen(true);
       }
     } catch (error) {
       console.log(error);
@@ -213,7 +220,12 @@ export default function BorrowerPage() {
           </Grid>
         </DialogContent>
       </Dialog>
-    
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 200 }}>SUCCESS<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </>
     
   );

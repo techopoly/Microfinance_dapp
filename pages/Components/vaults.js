@@ -11,7 +11,7 @@ const VaultManagementPage = () => {
             component="img"
             alt="Individual Vault Image"
             height="200"
-            image="https://www.kotak.com/content/dam/Kotak/article-images/4-tips-to-get-the-best-personal-loan-interest-rates-desk.jpg"
+            image="/images/individual.png"
             title="Individual Vault"
           />
           <CardContent>
@@ -30,7 +30,7 @@ const VaultManagementPage = () => {
             component="img"
             alt="Group Vault Image"
             height="200"
-            image="https://www.preferredbank.com/assets/files/MgcZzqlN/subad_businesssolutions.jpg"
+            image="/images/group.png"
             title="Group Vault"
           />
           <CardContent>

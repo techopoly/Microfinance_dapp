@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Testgroup from './testGroup';
 import useMifiApi from "../hooks/useMifiApi";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 
 import {
   Card,
@@ -21,6 +23,13 @@ export default function GroupVault() {
   const {web3, account, contract} = useMifiApi();
   const [refresh, setRefresh] = useState(true);
 
+  const [Open, setOpen] = useState(false);
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+  };
+
+  
   const handleDialogOpen = () => {
     setIsDialogOpen(true);
   };
@@ -54,6 +63,7 @@ export default function GroupVault() {
          .call({ from: account[0]});
          setRefresh(!refresh);
          console.log('all Vaults: ', vaults);
+         setOpen(true);
       }
     } catch (error) {
       console.log(error);
@@ -67,7 +77,7 @@ export default function GroupVault() {
           component="img"
           alt="Group Vault"
           height="400"
-          image="https://www.preferredbank.com/assets/files/MgcZzqlN/subad_businesssolutions.jpg"
+          image="/images/group.png"
           title="Group Vault"
         />
         <CardContent sx={{ justifyContent: 'center' }}>
@@ -102,6 +112,12 @@ export default function GroupVault() {
       </DialogActions>
     </form>
   </Dialog>
+  <Dialog open={Open} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 30 }}>New Vault has been Created<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
   <Testgroup props={refresh}/>
 </div>
 );

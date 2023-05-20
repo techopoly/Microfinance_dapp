@@ -120,7 +120,7 @@ const GroupLenders = () => {
         <CardMedia
           component="img"
           height="400"
-          image="https://www.preferredbank.com/assets/files/MgcZzqlN/subad_businesssolutions.jpg"
+          image="/images/group.png"
           alt="Group Lenders"
         />
       </Card>

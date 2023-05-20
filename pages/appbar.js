@@ -6,8 +6,8 @@ import { useRouter } from "next/router";
 import useMifiApi from "./hooks/useMifiApi";
 import Web3 from "web3";
 import {Modal, TextField, Paper, Grid } from '@material-ui/core';
-import Rightbar from "./rightbar"
-
+import Rightbar from "./sidebar"
+import styles from '../styles/nav.module.css';
 
 const useStyles = makeStyles((theme) => ({
   logo: {
@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function AppHeader() {
+  const isActive = (pathname) => router.pathname === pathname;
   const classes = useStyles();
   const router = useRouter();
   const { web3, account, contract } = useMifiApi();
@@ -133,65 +134,43 @@ const handleConfirm = () => {
 ////////////////////////////////////////////////////////////////////
   return (
     <>
-    
-    <AppBar position="static">
-      <Toolbar>
-        <Typography
-          variant="h6"
-          className={classes.logo}
-          onClick={() => handleOptionClick("")}
-        >
-          MicroLoan
-        </Typography>
-        <nav style={{ display: 'flex', alignItems: 'center' }}>
-          <Button color="inherit" onClick={() => handleOptionClick("verify")}>
-            Verify
-          </Button>
-          <Button
-            color="inherit"
-            onClick={() => handleOptionClick("dashboard")}
-          >
-            Protocol Manager
-          </Button>
-          <Button
-            color="inherit"
-            onClick={() => handleOptionClick("userLoan")}
-          >
-            My Loans
-          </Button>
-          <Button variant="outlined" color="inherit">
-            {account ? "Connected" : "Connect Metamask"}
-          </Button>
-          {account && (
-            <Button variant="outlined" color="inherit"  onClick={() => Click("user")} >
-              {account}
-            </Button>
-          )}
-          {balance && (
-            <Button variant="outlined" color="inherit">
-              {`Balance: ` + balance + ` BDT`}
-            </Button>
-          )}
-          {/* {balance && (
-            <Button
-              onClick={() => addBalance("user")}
-              variant="outlined"
-              color="inherit"
-            >
-              Add Balance
-            </Button>
-          )} */}
-          {user.user_address && (
-            <Button onClick={signUp} variant="outlined" color="inherit">
-              Sign Up
-            </Button>
-          )}
-           <Button variant="outlined" color="inherit" onClick={handleOpen}>
-        Add Balance
-      </Button>
+   
+    <nav className={styles.navbar}>
+            <div onClick={() => router.push('/')} className={styles.navbar_brand}>
+                MicroLoan
+            </div>
+
+            <div className={styles.navbar_items}>
+                <div onClick={() => router.push('/')} className={isActive('/home') ? styles.active : styles.navbar_item}>
+                    Home
+                </div>
+               
+                {account && (
+                <div onClick={() => Click("user")} className={isActive('/services') ? styles.active : styles.navbar_item}>
+                     {account}
+                </div>
+                 )}
+                  {balance && (
+                <div onClick={() => Click("user")}  className={isActive('/contact') ? styles.active : styles.navbar_item}>
+                     {`Balance: ` + balance + ` BDT`}
+                </div>
+                  )}
+                   {user.user_address && (
+                    <div onClick={signUp} className={isActive('/home') ? styles.active : styles.navbar_item}>
+                    Sign Up 
+                </div>
+                )}
+                <div onClick={handleOpen} className={isActive('/home') ? styles.active : styles.navbar_item}>
+                    Add Balance
+                </div>
+                <div onClick={() => router.push('/about')} className={isActive('/about') ? styles.active : styles.navbar_item }>
+                  {account ? "Connected "  : "Connect Metamask"} <span className={styles.dot}></span>
+                </div>
+            </div>
+            <div >
+                    <Rightbar/>
+              </div>
         </nav>
-      </Toolbar>
-    </AppBar>
 
     <div>
      
