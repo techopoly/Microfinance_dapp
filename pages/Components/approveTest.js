@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
-  Card,
-  CardContent,
   Typography,
-  CardMedia,
   Select,
   Button,
   Dialog,
@@ -23,6 +20,8 @@ import {
 import { styled } from '@mui/material/styles';
 import Link from 'next/link';
 import useMifiApi from "../hooks/useMifiApi";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 
 const StyledLink = styled(Link)`
   text-decoration: none;
@@ -38,6 +37,13 @@ const GroupLenders = (props) => {
   const [contribution, setContribution] = useState([]);
   const [allLoans, setAllLoans] = useState();
   const [refresh,setRefresh]= useState(false);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
   
   useEffect(() => {
     getAllLoans();
@@ -66,6 +72,7 @@ const GroupLenders = (props) => {
           .send({ from: account[0] });
         console.log("response: ", response);
         getAllLoans();
+        setIsDialogOpen(true);
       }
     } catch (error) {
       console.log(error);
@@ -135,6 +142,12 @@ const GroupLenders = (props) => {
     const id = e;
     router.push(`/user/${id}`);
   };
+  
+  const stakerinfo = (e) => {
+    console.log(e);
+    const id = e;
+    router.push(`/staker/${id}`);
+  };
 
   function convertTimestampToDateString(timestamp) {
     const milliseconds = timestamp * 1000; // Convert to milliseconds
@@ -191,7 +204,7 @@ const GroupLenders = (props) => {
                 <TableCell>
                   <Button
                   color="secondary"
-                    onClick={() => profile(group.staker)}
+                    onClick={() => stakerinfo(group.staker)}
                     variant="outlined"
                   >
                     {group.staker}
@@ -297,6 +310,12 @@ const GroupLenders = (props) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDetailsDialogClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 30 }}>Approved<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </>

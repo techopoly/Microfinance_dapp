@@ -13,7 +13,7 @@ const HeaderWrapper = styled(AppBar)({
 });
 
 const FooterWrapper = styled(Box)({
-  backgroundColor: '#3f51b5',
+  backgroundColor: '#3C7DDD',
   padding: '32px 0',
   color: '#fff',
   marginTop: 'auto',

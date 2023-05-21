@@ -17,7 +17,8 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import useMifiApi from "../hooks/useMifiApi";
-
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 
 const GroupLenders = () => {
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
@@ -27,6 +28,12 @@ const GroupLenders = () => {
   const [allVauts, setAllVaults] = useState([]);
   const { web3, account, contract } = useMifiApi();
   const [contribution, setContribution] = useState([]);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
 
   useEffect(() => {
     const getAllVaults = async () => {
@@ -73,6 +80,7 @@ const GroupLenders = () => {
             .call({ from: account[0] })
         );
       }
+      setIsDialogOpen(true);
     } catch (error) {
       console.log(error);
     }
@@ -114,6 +122,14 @@ const GroupLenders = () => {
   const BoldTableCell = styled(TableCell)({
     fontWeight: "bold",
   });
+
+  function convertTimestampToDateString(timestamp) {
+    const milliseconds = timestamp * 1000; // Convert to milliseconds
+    const date = new Date(milliseconds);
+    const dateString = date.toDateString(); // Get the date string
+  
+    return dateString;
+  }
   return (
     <>
       <Card sx={{ minWidth: "100%", marginBottom: "2rem" }}>
@@ -162,7 +178,7 @@ const GroupLenders = () => {
                 </TableCell>
                 <TableCell align="center">{group.total_supply}</TableCell>
                 <TableCell align="center">{group.interest_rate}%</TableCell>
-                <TableCell align="center">{group.creation_date}</TableCell>
+                <TableCell align="center">{convertTimestampToDateString(group.creation_date)}</TableCell>
                 <TableCell align="center">
                   <Button
                     onClick={() => handleJoinDialogOpen(group)}
@@ -222,6 +238,12 @@ const GroupLenders = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDetailsDialogClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 30 }}>Joined <CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </>

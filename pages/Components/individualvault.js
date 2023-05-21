@@ -15,7 +15,14 @@ import {
   MenuItem,
   Select,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogActions,
+
+  
 } from "@mui/material";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -34,6 +41,11 @@ export default function Vaults() {
   const { web3, account, contract } = useMifiApi();
   const [vaults, setVaults] = useState();
   const [allVaults, setAllVaults] = useState([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
 
   useEffect(() => {
     const getAllVaults = async () => {
@@ -70,6 +82,7 @@ export default function Vaults() {
         vault.id === vaultId ? { ...vault, status: newStatus } : vault
       )
     );
+    setIsDialogOpen(true);
   };
 
   const router = useRouter();
@@ -78,8 +91,15 @@ export default function Vaults() {
     const id = e;
     router.push(`/user/${id}`);
   };
-
+  function convertTimestampToDateString(timestamp) {
+    const milliseconds = timestamp * 1000; // Convert to milliseconds
+    const date = new Date(milliseconds);
+    const dateString = date.toDateString(); // Get the date string
+  
+    return dateString;
+  }
   return (
+    <>
     <div>
       <Card sx={{ maxWidth: "100%" }}>
         <CardMedia
@@ -147,7 +167,7 @@ export default function Vaults() {
 
                 <TableCell href="user/">{`$${vault.total_supply}`}</TableCell>
                 <TableCell>{`${vault.interest_rate}%`}</TableCell>
-                <TableCell>{vault.creation_date}</TableCell>
+                <TableCell>{convertTimestampToDateString(vault.creation_date)}</TableCell>
                 <TableCell>
                   <Select
                     name={vault.vault_id}
@@ -174,5 +194,12 @@ export default function Vaults() {
         </Table>
       </TableContainer>
     </div>
+    <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 30 }}>Approved<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

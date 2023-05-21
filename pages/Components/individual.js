@@ -168,6 +168,13 @@ const LendersTable = (props) => {
       return "Approved";
     }
   };
+  function convertTimestampToDateString(timestamp) {
+    const milliseconds = timestamp * 1000; // Convert to milliseconds
+    const date = new Date(milliseconds);
+    const dateString = date.toDateString(); // Get the date string
+  
+    return dateString;
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -191,8 +198,15 @@ const LendersTable = (props) => {
               <TableCell>{data.remaining_supply}</TableCell>
               <TableCell>{data.interest_rate}%</TableCell>
               <TableCell>{data.interest_earned}</TableCell>
-              <TableCell>{data.creation_date}</TableCell>
-              <TableCell>{getStatus(data.status)}</TableCell>
+              <TableCell>{convertTimestampToDateString(data.creation_date)}</TableCell>
+              <TableCell>
+              { data.status == 1 ? <Typography style={{ fontWeight: 600,color:"green" }} >
+                    {getStatus(data.status)}
+                  </Typography> :
+                    <Typography style={{ fontWeight: 600,color:"orange" }} >
+                    {getStatus(data.status)}
+                  </Typography>}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

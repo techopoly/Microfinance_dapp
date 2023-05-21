@@ -22,7 +22,8 @@ import {
 import { styled } from '@mui/material/styles';
 import Link from 'next/link';
 import useMifiApi from "../hooks/useMifiApi";
-
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 const StyledLink = styled(Link)`
   text-decoration: none;
 `;
@@ -40,6 +41,11 @@ const GroupLenders = (props) => {
   const [vaults, setVaults] = useState();
   const [refresh,setRefresh]= useState(false);
   
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
 
 
   useEffect(() => {
@@ -147,6 +153,7 @@ const GroupLenders = (props) => {
         vault.id === GroupId ? { ...vault, status: newStatus } : vault
       )
     );
+    setIsDialogOpen(true);
     }
 
   const getStatusColor = (status) => {
@@ -282,6 +289,12 @@ const GroupLenders = (props) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDetailsDialogClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 30 }}>Approved<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </>

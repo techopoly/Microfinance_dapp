@@ -12,6 +12,7 @@ import Grid from '@material-ui/core/Grid';
 import useMifiApi from "./hooks/useMifiApi";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { green } from '@mui/material/colors';
+import styles from '../styles/login.module.css';
 ////////////////////////////////////////////////Take loan///////////////////////////////
 const LogoTypography = styled(Typography)({
     flexGrow: 1,
@@ -26,13 +27,18 @@ export default function BorrowerPage() {
   const { web3, account, contract } = useMifiApi();
   const [allVaults, setAllVaults] = useState([]);
   const [vaultId, setVaultId] = useState();
+  const [allGroupVault, setAllGroupVault] = useState([]);
+  const [vaultType, setVaultType] = useState([]);
+
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
   };
-  const handleClickOpen = (vault_id) => {
+  const handleClickOpen = (vault_id, vaultType) => {
     setVaultId(vault_id);
+    setVaultType(vaultType);
     setOpen(true);
   };
 
@@ -57,7 +63,7 @@ export default function BorrowerPage() {
 
 
   useEffect(() => {
-    const getAllVaults = async () => {
+    const getAllIndividualVault = async () => {
       try {
         console.log("Watch Hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
         console.log(contract);
@@ -73,7 +79,22 @@ export default function BorrowerPage() {
         console.log(error);
       }
     };
-    getAllVaults();
+    const getAllGroupVault = async () => {
+      try {
+        if (contract) {
+          const vaults = await contract.methods
+            .show_all_group_vault()
+            .call({ from: account[0] });
+          console.log("vaults: ", vaults);
+          setAllGroupVault(vaults);
+          // getAllLoans();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getAllIndividualVault();
+    getAllGroupVault();
   }, [contract]);
 
   const getAllLoans = async () => {
@@ -93,17 +114,22 @@ export default function BorrowerPage() {
     try {
       if (contract) {
         const response = await contract.methods
-          .individual_borrow(vaultId, "individual", amount, eachInstallmentAmount, installments, eachTermInSecond)
+          .individual_borrow(vaultId, vaultType, amount, eachInstallmentAmount, installments, eachTermInSecond)
           .send({ from: account[0]});
         console.log("response: ", response);
-        getAllLoans();
+        // getAllLoans();
         setIsDialogOpen(true);
       }
     } catch (error) {
       console.log(error);
     }
   };
-
+  function convertTimestampToDateString(timestamp) {
+    const milliseconds = timestamp * 1000; // Convert to milliseconds
+    const date = new Date(milliseconds);
+    const dateString = date.toDateString(); // Get the date string
+    return dateString;
+  }
   return (
     <>
     <div>
@@ -113,7 +139,7 @@ export default function BorrowerPage() {
     <div>
     <Container maxWidth="xl" sx={{ width: '100%', mt: 4 }}>     
       <Typography variant="h4" align="center" gutterBottom>
-        Available Vaults
+        Individual Vaults
       </Typography>
       <TableContainer component={Paper}>
         <Table aria-label="Available Loans Table">
@@ -138,11 +164,11 @@ export default function BorrowerPage() {
                 <TableCell align="right">{data.remaining_supply}</TableCell>
                 <TableCell align="right">{data.interest_rate}%</TableCell>
                 <TableCell align="right">{data.interest_earned}</TableCell>
-                <TableCell align="right">{data.creation_date}</TableCell>
+                <TableCell align="right">{convertTimestampToDateString(data.creation_date)}</TableCell>
                 <TableCell align="right">
-                  <Button variant="contained" color="primary" onClick={()=>handleClickOpen(data.vault_id)}>
+                  <button className={styles.stake} onClick={()=>handleClickOpen(data.vault_id, 'individual')}>
                     Borrow
-                  </Button>
+                  </button>
                 </TableCell>
               </TableRow>
             ))}
@@ -152,7 +178,47 @@ export default function BorrowerPage() {
     </Container>
     </div>
         
-    
+    <div>
+    <Container maxWidth="xl" sx={{ width: '100%', mt: 4 }}>     
+      <Typography variant="h4" align="center" gutterBottom>
+        Group Vaults
+      </Typography>
+      <TableContainer component={Paper}>
+        <Table aria-label="Available Loans Table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Vault ID</TableCell>
+              <TableCell align="right">Total Supply</TableCell>
+              <TableCell align="right">Remaining Supply</TableCell>
+              <TableCell align="right">Interest Rate</TableCell>
+              <TableCell align="right">Interest Earned</TableCell>
+              <TableCell align="right">Creation Date</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {allGroupVault.map((data) => (
+              <TableRow key={data.vault_id}>
+                <TableCell component="th" scope="row">
+                  {data.vault_id}
+                </TableCell>
+                <TableCell align="right">{data.total_supply}</TableCell>
+                <TableCell align="right">{data.remaining_supply}</TableCell>
+                <TableCell align="right">{data.interest_rate}%</TableCell>
+                <TableCell align="right">{data.interest_earned}</TableCell>
+                <TableCell align="right">{convertTimestampToDateString(data.creation_date)}</TableCell>
+                <TableCell align="right">
+                  <button className={styles.stake} onClick={()=>handleClickOpen(data.vault_id, 'group')}>
+                    Borrow
+                  </button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Container>
+    </div>
 
       <Dialog 
         open={open} 
@@ -221,7 +287,7 @@ export default function BorrowerPage() {
         </DialogContent>
       </Dialog>
       <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
-        <DialogTitle sx={{ fontSize: 200 }}>SUCCESS<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogTitle sx={{ fontSize: 30 }}>SUCCESS<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Close</Button>
         </DialogActions>

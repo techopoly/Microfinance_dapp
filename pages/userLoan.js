@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import styles from '../styles/login.module.css';
 import {
   Card,
   CardContent,
@@ -163,6 +164,13 @@ const GroupLenders = (props) => {
     router.push(`/user/${id}`);
   };
 
+  
+  const stakerinfo = (e) => {
+    console.log(e);
+    const id = e;
+    router.push(`/staker/${id}`);
+  };
+
   function convertTimestampToDateString(timestamp) {
     const milliseconds = timestamp * 1000; // Convert to milliseconds
     const date = new Date(milliseconds);
@@ -174,18 +182,15 @@ const GroupLenders = (props) => {
   const createStakingStatusButton = (staker) => {
     if (staker === "0x0000000000000000000000000000000000000000") {
       return (
-        <Button
-          variant="contained"
-          style={{ backgroundColor: red[500], color: "white" }}
-        >
+        <button className={styles.notstaked}>
           Not Staked
-        </Button>
+        </button>
       );
     } else {
       return (
-        <Button variant="contained" color="success">
+        <button className={styles.staked}>
           Staked
-        </Button>
+        </button>
       );
     }
   };
@@ -242,10 +247,10 @@ const GroupLenders = (props) => {
                 Starting Date
               </BoldTableCell>
               <BoldTableCell align="center" variant="head">
-                Details
+                Status
               </BoldTableCell>
               <BoldTableCell align="center" variant="head">
-                Status
+              Details
               </BoldTableCell>
               <BoldTableCell align="center" variant="head">
                 Staking Status
@@ -265,22 +270,24 @@ const GroupLenders = (props) => {
                   {group.vault_id}
                 </TableCell>
                 <TableCell align="center">{group.amount}</TableCell>
-                <TableCell>
+                <TableCell align="center">
                   <Button
                     color="secondary"
                     onClick={() => profile(group.borrower)}
                     variant="outlined"
+                    
                   >
                     {group.borrower.substring(0, 6) +
                       "..." +
                       group.borrower.substring(11, 15)}
                   </Button>
                 </TableCell>
-                <TableCell>
+                <TableCell align="center">
                   <Button
                     color="secondary"
-                    onClick={() => profile(group.staker)}
+                    onClick={() => stakerinfo(group.staker)}
                     variant="outlined"
+                    
                   >
                     {group.staker.substring(0, 6) +
                       "..." +
@@ -290,6 +297,15 @@ const GroupLenders = (props) => {
                 <TableCell align="center">
                   {convertTimestampToDateString(group.start_date)}
                 </TableCell>
+
+                <TableCell align="center">
+                { group.status == 1 ? <Typography style={{ fontWeight: 600,color:"green" }} >
+                    {getStatus(group.status)}
+                  </Typography> :
+                    <Typography style={{ fontWeight: 600,color:"orange" }} >
+                    {getStatus(group.status)}
+                  </Typography>}
+                </TableCell>
                 <TableCell align="center">
                   <Button
                     onClick={() => handleDetailsDialogOpen(group)}
@@ -298,20 +314,22 @@ const GroupLenders = (props) => {
                     Details
                   </Button>
                 </TableCell>
-                <TableCell>
-                  <Typography color="warning.main">
-                    {getStatus(group.status)}
-                  </Typography>
-                </TableCell>
-                <TableCell>{createStakingStatusButton(group.staker)}</TableCell>
                 <TableCell align="center">
-                  <Button
+             
+                   
+                    
+                    {createStakingStatusButton(group.staker)}
+                  
+                  </TableCell>
+                <TableCell align="center">
+                  <button
+                    className={styles.stake}
                     onClick={() => handleOpen(group, index + 1)}
                     variant="contained"
-                    style={{ backgroundColor: yellowishColor, color: "white" }}
+                    
                   >
                     Pay
-                  </Button>
+                  </button>
                 </TableCell>
               </TableRow>
             ))}

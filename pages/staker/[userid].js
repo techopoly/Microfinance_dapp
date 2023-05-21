@@ -1,10 +1,10 @@
 import useMifiApi from '../hooks/useMifiApi';
 import { useEffect, useState } from "react";
-import { Container, Typography, Box, Paper, Grid, Divider,CircularProgress } from '@material-ui/core';
+import { Container, Typography, Box, Paper, Grid, Divider,CircularProgress,CheckCircleIcon } from '@material-ui/core';
 import { useRouter } from "next/router";
 import Header from "../appbar";
 import { green } from '@mui/material/colors';
-
+import color from "../../styles/login.module.css"
 const UserDetails = () => {
     const{web3, account, contract} = useMifiApi();
     const [loading, setLoading] = useState(true);
@@ -18,11 +18,11 @@ const UserDetails = () => {
           try {
             console.log(contract);
             if (contract) {
-              const user = await contract.methods
-                .address_user(userId)
+                const staker = await contract.methods
+                .address_staker(userId)
                 .call({ from: account[0] });
-              console.log("New user : ", user);
-              setUser(user);
+              console.log("Staker Data : ", staker);
+              setUser(staker);
               setLoading(false);
               
             }
@@ -71,7 +71,7 @@ const UserDetails = () => {
             border: '2px solid #3f51b5',
           }}
         >
-          User Details
+          Staker Details
         </Typography>
         <Paper
           style={{
@@ -87,7 +87,7 @@ const UserDetails = () => {
               <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
                 User Address
               </Typography>
-              <Typography variant="body1">{user[0]}</Typography>
+              <Typography variant="body1">{userId}</Typography>
             </Grid>
             <Divider style={{ margin: '1.5rem 0' }} />
             <Grid item xs={12} sm={6}>
@@ -98,16 +98,16 @@ const UserDetails = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
-                Credit Score
+                reputation Score
               </Typography>
-              <Typography variant="body1">{user.credit_score}</Typography>
+              <Typography variant="body1">{user.reputation_score}</Typography>
             </Grid>
             <Divider style={{ margin: '1.5rem 0' }} />
             <Grid item xs={12}>
               <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
                 NID Verification
               </Typography>
-              <Typography variant="body1" style={{ fontWeight: 600, marginBottom: '0.5rem',color:"green" }}>Verified</Typography>
+              <Typography  style={{ fontWeight: 600, marginBottom: '0.5rem',color:"green" }}>Verified </Typography>
             </Grid>
           </Grid>
         </Paper>

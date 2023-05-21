@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import styles from '../styles/login.module.css';
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import {
   MenuItem,
   TableCell,
   TableBody,
+  DialogContentText
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { makeStyles } from "@material-ui/core/styles";
@@ -31,6 +33,8 @@ import Web3 from "web3";
 import Link from "next/link";
 import Header from "./appbar";
 import useMifiApi from "./hooks/useMifiApi";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 
 const StyledLink = styled(Link)`
   text-decoration: none;
@@ -90,7 +94,28 @@ const GroupLenders = (props) => {
   const conversionRate = 193207.53; // 1 ETH = 193207.53 BDT (use a service/API to fetch this dynamically)
   const [open, setOpen] = useState(false);
 
+  const [agree, setagree] = React.useState(false);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+    
+  const openAgrement = () =>{
+    setagree(true);
+  }
+
+  const close = () => {
+    setagree(false);
+  };
+
+  
+
   useEffect(() => {
+    console.log("Check the contract from hereeeeeeee.....................")
+    console.log(contract)
+    
     getAllLoans();
   }, [contract]);
 
@@ -108,6 +133,7 @@ const GroupLenders = (props) => {
     }
   };
   useEffect(() => {
+    
     const getStakerInfo = async () => {
       try {
         console.log(contract);
@@ -116,7 +142,11 @@ const GroupLenders = (props) => {
             .address_staker(account[0])
             .call({ from: account[0] });
           setStaker(staker);
-          console.log("staker: ", staker);
+          console.log("staker: ", staker.is_nid_verified);
+          const NidVerified = staker.is_nid_verified;
+          if(NidVerified == false){
+            openAgrement();
+          }
         }
       } catch (error) {
         console.log(error);
@@ -142,6 +172,7 @@ const GroupLenders = (props) => {
             .call({ from: account[0] })
         );
         console.log(staker);
+        setIsDialogOpen(true);
       }
     } catch (error) {
       console.log(error);
@@ -171,6 +202,8 @@ const GroupLenders = (props) => {
             .call({ from: account[0] })
         );
       }
+      close();
+      setIsDialogOpen(true);
     } catch (error) {
       console.log(error);
     }
@@ -228,6 +261,7 @@ const GroupLenders = (props) => {
           .send({ from: account[0] });
         console.log("response: ", response);
         getAllLoans();
+        setIsDialogOpen(true);
       }
     } catch (error) {
       console.log(error);
@@ -312,31 +346,25 @@ const GroupLenders = (props) => {
     router.push(`/user/${id}`);
   };
 
+    const stakerinfo = (e) => {
+    console.log(e);
+    const id = e;
+    router.push(`/staker/${id}`);
+  };
+
   function convertTimestampToDateString(timestamp) {
     const milliseconds = timestamp * 1000; // Convert to milliseconds
     const date = new Date(milliseconds);
     const dateString = date.toDateString(); // Get the date string
-
     return dateString;
   }
   return (
     <>
       <Header />
-      {!parseInt(staker.balance) && (
-        <Button onClick={becomeStaker} variant="contained" color="success">
-          Become a Staker
-        </Button>
-      )}
-      <Button variant="contained" color="primary" onClick={handleOpen}>
+      <Box className={classes.section}>
+      <Button variant="contained" color="primary" onClick={handleOpen} sx={{ marginRight: 2 }} >
         Add Staking Balance
       </Button>
-      <hr></hr>
-      <Button onClick={addStakingBalance} variant="contained" color="primary">
-        Convert Balance to Staking Balance
-      </Button>
-      
-
-      <Box className={classes.section}>
         <Typography
           variant="h6"
           component="h3"
@@ -373,7 +401,7 @@ const GroupLenders = (props) => {
               <BoldTableCell align="center" variant="head">
                 Total Loan Amount
               </BoldTableCell>
-              <BoldTableCell align="center" variant="head">
+              <BoldTableCell align="center" variant="head" >
                 Borrower
               </BoldTableCell>
               <BoldTableCell align="center" variant="head">
@@ -403,22 +431,25 @@ const GroupLenders = (props) => {
                   {group.vault_id}
                 </TableCell>
                 <TableCell align="center">{group.amount}</TableCell>
-                <TableCell>
-                  <Button
+                <TableCell align="center">
+                  <Button 
+                  
                     color="secondary"
                     onClick={() => profile(group.borrower)}
                     variant="outlined"
+                    
                   >
                     {group.borrower.substring(0, 6) +
                       "..." +
                       group.borrower.substring(11, 15)}
                   </Button>
                 </TableCell>
-                <TableCell>
+                <TableCell align="center">
                   <Button
                     color="secondary"
-                    onClick={() => profile(group.staker)}
+                    onClick={() => stakerinfo(group.staker)}
                     variant="outlined"
+                    
                   >
                     {group.staker.substring(0, 6) +
                       "..." +
@@ -436,19 +467,23 @@ const GroupLenders = (props) => {
                     Details
                   </Button>
                 </TableCell>
-                <TableCell>
-                  <Typography color="warning.main">
+                <TableCell align="center" >
+                  { group.status == 1 ? <Typography style={{ fontWeight: 600,color:"green" }} >
                     {getStatus(group.status)}
-                  </Typography>
+                  </Typography> :
+                    <Typography style={{ fontWeight: 600,color:"orange" }} >
+                    {getStatus(group.status)}
+                  </Typography>}
+                  
                 </TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => stake(index + 1)}
+                <TableCell align="center">
+                  <button
+                    className={styles.stake}
+                    onClick={() => stake(index + 1)} 
+                    
                   >
                     Stake
-                  </Button>
+                  </button>
                 </TableCell>
               </TableRow>
             ))}
@@ -589,6 +624,36 @@ const GroupLenders = (props) => {
           </Paper>
         </Modal>
       </div>
+      <Dialog
+        open={agree}
+        
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Terms & Conditions"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description" >
+          Staking is a significant responsibility. 
+          You need to ensure you're staking your money on trustworthy borrowers, 
+          as your stake enables them to secure loans. However, if the borrower fails to repay, you'll bear the consequences, 
+          and your reputation score will decrease. Be cautious and discerning with your stakes.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          
+          <Button onClick={becomeStaker} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 30 }}>Success<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

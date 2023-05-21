@@ -60,7 +60,7 @@ export default function Home() {
               <CardMedia
                 component="img"
                 height="200"
-                image="https://loanscanada.ca/wp-content/uploads/2017/05/Borrowing_money.jpg"
+                image="/images/borrow.png"
                 alt="Borrower"
               />
               <CardContent>
@@ -86,7 +86,7 @@ export default function Home() {
               <CardMedia
                 component="img"
                 height="200"
-                image="https://learn.eforms.com/wp-content/uploads/2020/08/16_9-Get-paid-back.png"
+                image="/images/lend.png"
                 alt="Lender"
               />
               <CardContent>
@@ -113,7 +113,7 @@ export default function Home() {
               <CardMedia
                 component="img"
                 height="200"
-                image="https://www.pngkit.com/png/full/49-495738_custom-color-handshake-icon-free-handshake-icons-business.png"
+                image="/images/staker.png"
                 alt="Lender"
               />
               <CardContent>

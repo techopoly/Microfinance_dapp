@@ -26,7 +26,6 @@ export default function Sidebar() {
         <button onClick={toggleShow} className={styles.closeButton}>Close</button>
         <button onClick={() => handleOptionClick("dashboard")}>Protocol Manager</button>
         <button onClick={() => handleOptionClick("verify")}>Verify</button>
-        <button onClick={() => handleOptionClick("userLoan")}>My Loan</button>
         <button onClick={() => handleOptionClick("borrower")}>Borrow Money</button>
         <button onClick={() => handleOptionClick("loan")}>Lend Money</button>
         <button onClick={() => handleOptionClick("staker")}>Become Staker </button>

@@ -31,6 +31,11 @@ const ProtocolManager = () => {
     router.push(`/${option}`);
   };
 
+  const logOut = () =>{
+    localStorage.removeItem('logged_in');
+    router.push(`/login`);
+  }
+
   return (
     <>
       <StyledDrawer variant="permanent" anchor="left">
@@ -53,11 +58,11 @@ const ProtocolManager = () => {
             </ListItemIcon>
             <ListItemText primary="Approve Borrowers" />
           </ListItem>
-          <ListItem button selected={selectedOption === 'verify-members'} onClick={() => handleOptionClick('verification')}>
+          <ListItem button selected={selectedOption === 'verify-members'} onClick={() => logOut()}>
             <ListItemIcon>
               <PersonAddIcon color={selectedOption === 'verify-members' ? 'primary' : 'inherit'} />
             </ListItemIcon>
-            <ListItemText primary="Verify New Members" />
+            <ListItemText primary="Log Out" />
           </ListItem>
         </StyledList>
       </StyledDrawer>
