@@ -28,6 +28,8 @@ import { makeStyles } from "@material-ui/core/styles";
 import Link from "next/link";
 import useMifiApi from "./hooks/useMifiApi";
 import AppBar from "./appbar";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { green } from '@mui/material/colors';
 
 const StyledLink = styled(Link)`
   text-decoration: none;
@@ -65,6 +67,12 @@ const GroupLenders = (props) => {
   const [loanId, setLoanId] = useState();
   const [vaultType, setVaultType] = useState();
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
   useEffect(() => {
     getAllLoans();
   }, [contract]);
@@ -91,6 +99,7 @@ const GroupLenders = (props) => {
           .send({ from: account[0], value: amount });
         console.log("response: ", response);
         getAllLoans();
+        setIsDialogOpen(true);
       }
     } catch (error) {
       console.log(error);
@@ -446,6 +455,12 @@ const GroupLenders = (props) => {
           </Paper>
         </Modal>
       </div>
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle sx={{ fontSize: 30 }}>Repayment Completed<CheckCircleIcon sx={{ fontSize: 30, color: green[500] }} /></DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

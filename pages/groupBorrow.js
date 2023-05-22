@@ -162,6 +162,14 @@ export default function BorrowerPage() {
     };
     getAllVaults();
   }, [contract]);
+
+  function convertTimestampToDateString(timestamp) {
+    const milliseconds = timestamp * 1000; // Convert to milliseconds
+    const date = new Date(milliseconds);
+    const dateString = date.toDateString(); // Get the date string
+  
+    return dateString;
+  }
   return (
     <>
     
@@ -198,7 +206,7 @@ export default function BorrowerPage() {
                 <TableCell align="right">{data.remaining_supply}</TableCell>
                 <TableCell align="right">{data.interest_rate}%</TableCell>
                 <TableCell align="right">{data.interest_earned}</TableCell>
-                <TableCell align="right">{data.creation_date}</TableCell>
+                <TableCell align="right">{convertTimestampToDateString(data.creation_date)}</TableCell>
                 <TableCell align="right">
                   <Button variant="contained" color="primary" onClick={handleClickOpen}>
                     Borrow

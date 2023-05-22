@@ -85,14 +85,14 @@ const UserDetails = () => {
           <Grid container spacing={3} style={{  marginTop: '5' }}>
             <Grid item xs={12}>
               <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
-                User Address
+                Staker Address
               </Typography>
               <Typography variant="body1">{userId}</Typography>
             </Grid>
             <Divider style={{ margin: '1.5rem 0' }} />
             <Grid item xs={12} sm={6}>
               <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
-                User Balance
+                Staker Balance
               </Typography>
               <Typography variant="body1">{user.balance}</Typography>
             </Grid>
